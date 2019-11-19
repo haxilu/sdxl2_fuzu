@@ -73,10 +73,10 @@ function ChoiceBox(isChoice)
     end
 end
 
-function Github()
-    setclipboard("https://github.com/xxxxue/sdxl2_fuzu")
-   
-    messagebox("网址复制成功,请粘贴到浏览器中查看.")
+function Github()   
+
+   cmdroot("am start -a android.intent.action.VIEW -d https://github.com/xxxxue/sdxl2_fuzu")
+    
 end
 
 function QQGroup()
