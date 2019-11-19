@@ -1,0 +1,2019 @@
+traceprint("BeginHoldupLogcat+354885281354885281")package.path = package.path..";"..getrcpath("rc:").."?.lua" 
+
+
+--设置
+Settings={
+--[[
+##########################状态机设置#######
+--]]
+Process={
+--执行的间隔时间
+SleepTime=1000, 
+
+--是否永久循环
+IsLoop=false,
+
+--是否开启XM Log
+IsXMLog=false
+
+}
+--[[
+#########################脚本设置#######
+--]]
+,Script={
+
+--脚本比例尺
+Scale_x=720, 
+Scale_y=1280,
+
+--消息提示坐标X
+MsgBoxPosition_x=233,
+MsgBoxPosition_y=1215, 
+
+--Home位置(影响坐标)--例子:下(竖屏) 右(横屏)  左 上
+HomeKeyPosition="右"
+
+}
+
+}
+
+
+--状态机
+Unit={
+State={
+Name="" --脚本启动的入口(需自定义)
+},
+Param={},
+}
+
+
+--特征表
+H={}
+--Home键位置枚举
+local HomeKeyPositionEnum={下=0,右=1,左=2,上=3,}
+--
+--初始化 脚本
+--
+function Init() 
+    --加载XM 
+    require ("XM")    
+    
+    --添加特征表表
+    XM.AddTable(H) 
+    
+    --打开XM Log日志  
+    if Settings.Process.IsXMLog then
+        XM.XMLogExOpen() 
+    end    
+    
+    logopen()
+    
+    --设置编写脚本时的分辨率,用于同比例屏幕适配
+    XM.SetScale(Settings.Script.Scale_x,Settings.Script.Scale_y)    
+    
+    --设置 Home 键位置
+    setrotatescreen(HomeKeyPositionEnum[Settings.Script.HomeKeyPosition])
+end
+
+--注册机调用对应的方法
+function ProcessState (stateTable,stateName,stateParam)  
+    --XM.Print(stateTable)
+    if stateTable[stateName] ~= nil  then        
+        return stateTable[stateName](stateParam)        
+    end
+    return "Error"   
+end
+
+--脚本启动方法
+function floatwinrun()
+    Init()    
+    if Unit.State.Name~="" then         
+        if Settings.Process.IsLoop then             
+            while true do
+                Main()                
+            end             
+        else            
+            Main()            
+        end        
+    else
+        Debug("程序异常,状态机 State.Name 为空....")
+    end
+    Debug("脚本结束",true)
+    sleep(1000)
+    XM.MsgClose()
+end
+
+--状态机主程序
+function Main()    
+    
+    --异常处理
+    local res,error= pcall(    
+    function ()
+        XM.KeepScreen() --对图色功能数据进行刷新
+        --调用状态机
+        Unit.State.Name=ProcessState(
+        Unit.State,--所有状态
+        Unit.State.Name,--调用的状态
+        Unit.Param[Unit.State.Name]--调用状态的参数
+        )
+        --Debug(timenow()  .."当前状态:"..Unit.State.Name)        
+        sleep(Settings.Process.SleepTime)--休息间隔
+        
+        XM.MsgClose()
+    end    
+    )
+    --提示并记录 错误信息
+    if res==false then           
+        Debug("发生了错误!!!! \n"..error)   
+        if WriteTxtFile(error) then
+            Debug("日志记录成功..")
+        end        
+    end    
+    
+end
+
+--画面提示信息
+function Msg(str)   
+    XM.Msg(str,Settings.Script.MsgBoxPosition_x,Settings.Script.MsgBoxPosition_y)  
+end
+
+--调试信息
+function Print(str)
+    XM.Print(str)
+end
+
+--debug输出
+function Debug(str,isWriteFile)    
+    
+    isWriteFile=isWriteFile or false
+   
+    str=tostring(str) 
+    Msg(str)     
+    logex(str)
+    Print(str)
+    if isWriteFile then
+        WriteTxtFile(str)
+    end 
+end
+
+
+--写入txt
+function WriteTxtFile(content)    
+    
+    if XM.Switch("创建文件夹") then
+        foldercreate("/sdcard/神雕2脚本日志")
+    end       
+    
+    local res=false
+    local res,error= pcall(function ()   
+
+    local dateNow=timenow()
+    local logFileName=timeyear(dateNow).."_".. timemonth(dateNow).."_".. timeday(dateNow)
+    
+    local fd = fileopen("/sdcard/神雕2脚本日志/"..logFileName..".txt","a+")
+    
+    if(fd > 0) then                
+        content="\n"..tostring(timenow()) .."\n\n\t\t".. content
+        
+        if XM.Switch("日志") then
+            content="\n\n\n------------------------------\n"..content        
+        end
+        
+        res= filewriteline(fd,content)
+    end
+    fileclose(fd) 
+    
+    end)
+    
+    if res==false then
+        Debug(error)
+    end
+    
+    return res
+end
+
+--等待
+function Wait(list,num)
+    sleep(1000)
+    list= list or {name="任务"}
+    --间隔x秒               
+    local countDown=num          
+    while true do
+        if countDown<=0 then
+            return true
+        else            
+            Debug("***["..list.name.."]进行中-->>>>>>倒计时:"..XM.DateRet(countDown))
+        end
+        
+        countDown = countDown - 10
+        sleep(10000)        
+    end
+end
+
+
+--[[
+
+FindNumRet
+Find
+添加刷新找图
+
+Unit.State.Name="RunApp_Bilibili"
+Settings.Process.IsLoop=true
+Settings.Process.SleepTime=1000
+Settings.Process.IsXMLog=true
+
+
+ipairs,pairs
+
+videos={
+{181,278},
+{535,258},
+{199,603},
+{518,615},
+{198,992}
+}
+
+if #videos>0 then
+    XM.RndTap(videos[1][1],videos[1][2])
+    
+    return "SendCoin"
+else
+    return ""
+end
+table.remove(videos,1)  
+
+
+
+Unit.Param.帮派任务={
+name="帮派任务"
+}
+function Unit.State.帮派任务(list)
+    
+    return list.name
+end
+--]]
+H["界面"]={
+{"背包",1195,524,1279,604,"80CBEB-111111","-11|4|F7BDAF-111111,14|4|EEAEA1-111111"}
+,{"活动界面",98,663,128,694,"BE9D59-111111","-2|-270|6DABA3-111111,-20|-475|F6D27A-111111,27|-599|538983-111111,144|-525|7D748B-111111,644|-566|865E41-111111,1047|-566|A2894D-111111,1094|-536|EE8EA2-111111"}
+,{"关闭使用物品界面",926,357,975,400,"826940-111111","0|-10|F4EABE-111111,0|10|D1BB7A-111111,-12|-2|E6D8A1-111111,12|-1|DECD93-111111,-20|4|AD6A47-111111,-103|152|FFEDB3-111111,-128|178|BFCDC5-111111,-5|178|A1C8BA-111111,-8|64|EEECDD-111111"}
+,{"竞技场界面",44,70,206,241,"A75252-111111","-9|-57|F7F3E3-111111,75|-95|529D86-111111,9|1|A75252-111111"}
+,{
+{"战斗界面",0,79,139,179,"ECFDFD-111111","14|-8|55A6A7-111111,12|11|337C79-111111,-18|-31|2F735B-111111,74|3|BDDFBB-111111"}
+,{"战斗界面左上角黄条",76,52,100,62,"F7EDAA-111111","7|0|FAF1AD-111111,4|0|FAF0AD-111111,90|1|F3E8A6-111111,95|1|F6EAA8-111111,98|0|F5EBA6-111111"}
+}
+--关闭按钮 集合
+,{
+{"关闭",1154,56,1158,63,"9D7C4D-111111","15|0|E8D69C-111111,0|-12|F6F2D5-111111,-5|26|F097A8-111111,3|48|CB6D7F-111111,-23|8|F3A7B6-111111,-22|-9|E67C84-111111,8|-24|CD707B-111111"}
+,{"关闭2",1194,74,1198,78,"9E7C4B-111111","0|-12|F7F2D3-111111,14|0|E6D69B-111111,0|11|E1CC84-111111,-13|1|EDE1A6-111111,25|-1|B84E5B-111111,19|-15|CA5668-111111,6|-24|CA6A79-111111,-24|-10|E67E83-111111,-6|27|F196A8-111111"}
+,{"关闭3",1244,28,1249,32,"816541-111111","1|11|B09F74-111111,-55|36|FAA1B8-111111,-13|36|F2B8C3-111111,-32|16|EFB7C0-111111,27|-27|C77778-111111,-26|-26|DB8C9F-111111,-28|-28|DB8DA1-111111"}
+,{"关闭4",1207,114,1215,119,"9E7C4C-111111","-2|12|E0CB82-111111,10|0|EDDFA9-111111,-5|-13|F8F7E8-111111,-13|2|ECDFA6-111111,18|68|F08291-111111,1|48|C66A7A-111111,25|-1|B9505D-111111,-7|27|F39BAB-111111,-47|31|FBA1BB-111111"}
+,{"关闭5",1245,22,1252,27,"826541-111111","-1|15|BFA358-111111,16|2|CAB268-111111,-2|-15|EAD99F-111111,-17|2|D1B86F-111111,-9|39|E88495-111111,21|41|E5748C-111111,-56|42|F79FB4-111111,-37|28|CC5466-111111,-41|8|AD5D7A-111111"}
+,{"关闭6",1140,90,1144,95,"9D7C4C-111111","0|-14|F7F1D2-111111,12|0|E9D99D-111111,-2|11|DFC982-111111,-13|0|EEE0A6-111111,-6|25|F094A6-111111,-48|31|FEAEC5-111111,26|-2|BE5261-111111,20|-15|CA5668-111111,7|-24|CA6E78-111111"}
+,{"关闭7",1115,68,1122,75,"9D7D4B-111111","0|10|E5D08A-111111,13|0|E9DBA1-111111,0|-13|F7F1D4-111111,-9|0|EFE4AF-111111,2|47|C26878-111111,18|68|F08492-111111,27|-2|C35564-111111,-46|30|F68DAB-111111"}
+,{"关闭8",1245,40,1250,45,"AD9E70-111111","-12|23|F2B7C2-111111,21|22|CB8B96-111111,-54|23|F392A9-111111,-32|4|EFB6BE-111111,-16|18|F1B5C2-111111,-3|20|DD8B9A-111111,-5|3|B0986F-111111,5|3|AD966D-111111"}
+}
+
+,{"五号位置请离按钮",850,435,1016,505,"365F57-111111","70|19|FDF3DD-111111,154|0|365F57-111111,141|29|FAEFD6-111111"}
+,{"跳过对话",1152,10,1275,44,"F4F1EE-111111","-17|0|F0F1F0-111111,-37|1|F8F8F8-111111,-48|2|FEFEFE-111111,-60|0|F7F6F6-111111"}
+
+,{
+{"活动按钮",227,4,716,231,"E5B46E-111111","-18|-5|B84F3F-111111,20|-5|CB9B64-111111,-6|13|F1F1F1-111111,13|2|2E3C4B-111111,33|11|E0CFBB-111111"}
+,{"活动按钮2",223,0,775,221,"C2945E-111111","-8|21|DEDFE0-111111,-16|-1|445E76-111111,-11|-3|ECDDBC-111111,30|7|E2D0BD-111111,-21|-6|B74D3D-111111,-25|-7|B04F46-111111,-9|14|FAFAFB-111111,-7|-3|F8C56E-111111"}
+,{"活动按钮3",472,4,546,74,"DEAC66-111111","-5|-24|4C5A6A-111111,-25|4|F3543A-111111,24|31|E5D4BC-111111,-4|38|3B4657-111111,-7|18|D3A365-111111,-18|17|DED7C5-111111,15|4|F7D59A-111111"}
+,{"活动按钮4",504,45,509,49,"DBAB68-111111","-18|-4|BA4E3E-111111,-24|-5|B64F3D-111111,-6|18|F7F8F8-111111,-3|1|F8C774-111111,0|-2|E9B66E-111111,16|24|EDECEC-111111,-2|-2|F7C577-111111,0|2|DFAD68-111111"}
+}
+
+,{"坐标色点",104,48,175,64,"D4D2C4"}
+,{"队伍满人按钮",499,411,581,460,"9B5E38-111111","66|-9|FFEDB5-111111,143|-4|FFEFBA-111111,259|-3|FFEFBB-111111,9|-24|FFEBA6-111111,357|-214|9E7D52-111111,89|-205|346865-111111,-133|-4|5D8F89-111111"}
+
+,{
+{"功能展开箭头",660,26,687,55,"D6EED5-111111","-10|1|AAD7AA-111111,-9|12|ABCEAB-111111,3|1|E8F9E8-111111,473|-16|E34C38-111111,473|-2|69AFFF-111111"}
+,{"功能展开箭头2",579,24,604,54,"E6F8E6-111111","-12|-10|B0D4B0-111111,-13|11|AED1AE-111111,-14|0|ABD5AA-111111,544|-16|E34C38-111111,544|-2|69B0FF-111111,520|-3|69B1FF-111111,520|-17|E34B39-111111"}
+,{"功能展开箭头3",477,9,771,81,"E7F8E7-111111","-11|8|A9CBA9-111111,-13|0|AAD6AA-111111,-3|3|D7EED7-111111,-7|5|BBDDBB-111111,-5|-3|CCDFBE-111111,-12|10|ABCEAB-111111"}
+}
+
+,{
+{"修行按钮",638,12,716,73,"F97056-111111","-6|1|FE7D65-111111,-16|20|EFF0F2-111111,31|-8|40525C-111111,-27|-7|415260-111111,18|-3|C44C3A-111111,-17|1|FE856C-111111,-23|9|FE8DB7-111111"}
+,{"修行按钮2",636,1,776,75,"F9A27A-111111","-9|0|FD846B-111111,-16|-2|FE846B-111111,-22|-3|FC7B5E-111111,-29|5|F38CB7-111111,17|3|ED618B-111111,6|17|F4F4F4-111111,19|17|DCDCDE-111111,16|1|F384A7-111111,16|0|F38CA9-111111"}
+}
+
+,{"队伍tab选中状态",1154,110,1210,136,"499B85-111111","-38|1|4A9C85-111111,38|0|499B84-111111,2|14|76D3B3-111111,-1|-15|3C937B-111111,-83|-4|F6F9F7-111111"}
+,{"队伍tab未选中状态",1184,110,1212,134,"FAFBFA-111111","-32|3|E3E5E5-111111,-69|3|489885-111111,-147|3|499B86-111111,-109|-13|3B947C-111111,-111|18|7DDBB8-111111,75|2|E9FBE9-111111"}
+,{"未在队伍状态",1131,293,1177,318,"AAEBBE-111111","-67|-21|9AE4BD-111111,-67|20|CCF5BD-111111,67|20|CDF4BE-111111,68|-21|9AE2C1-111111,3|-22|9EE2C0-111111,-2|22|D3F5C0-111111"}
+
+,{"任务tab偏旁",1051,110,1061,134,"F6F9F8-111111","1|-1|F8FBF9-111111,2|6|E4ECE9-111111,2|7|E4EEEA-111111,2|-5|E6EEEB-111111,12|1|F3F6F5-111111"}
+
+}
+
+H["任务"]={
+{"夜袭敌营",331,178,1187,378,"FBEFB9-111111","-287|-31|C8512F-111111,-262|23|398E8E-111111,-316|19|58A6A8-111111,-290|2|DCD4AB-111111"}
+,{"五绝令",330,174,1188,542,"AC815C-111111","3|-21|FFF9D8-111111,-43|-1|FBE7B1-111111,-283|-10|5CB16D-111111,-303|9|4FA25E-111111,-303|-15|4FA35F-111111,-270|30|AA5539-111111,-290|-42|7DA7F9-111111"}
+,{"勇闯绝情谷",330,174,1188,542,"A26C46-111111","9|-21|FFF9D7-111111,-35|-1|FCECBB-111111,-282|5|3EA2AF-111111,-310|27|5ED9E3-111111,-258|8|54AAB5-111111,-300|21|FEFEEC-111111,-284|-41|7DA8F8-111111,-295|-11|5BADB5-111111"}
+
+,{"副本入口按钮",918,404,1157,521,"F8E8BB-111111","-84|-39|B1FFE6-111111,85|-39|B1FFE6-111111"}
+,{"副本结算页面",180,70,1111,218,"9E7D4C-111111","-30|-1|BF5A7A-111111,-23|21|673C58-111111,-819|1|FFFFFF-111111,-842|32|FFFFFF-111111,-815|33|B65451-111111"}
+,{"副本内队伍界面",1044,106,1115,136,"FCFAFB-111111","122|0|45977E-111111,75|4|F7FBFA-111111,75|4|F7FBFA-111111,-120|71|FC8464-111111,-141|82|D5603E-111111,-135|67|CC785E-111111,-390|-83|DB8359-111111"}
+,{"副本内任务界面",1038,104,1121,138,"E1E5E5-111111","6|-1|479984-111111,46|0|479781-111111,10|-16|3F9678-111111,188|0|E6F7E5-111111,-417|-95|F3DD9C-111111,-504|-67|DB8359-111111"}
+,{"退出副本按钮",608,20,658,55,"FFFFFF-111111","17|-16|F3DD9C-111111,-27|11|F8E6B5-111111,62|-7|DB8359-111111,-70|-10|DB8359-111111,68|2|F1E0BE-111111,-51|0|FDDAC2-111111,-19|22|F8EBCC-111111,-1|27|F3E6C5-111111"}
+
+
+,{"翰林求学",327,171,1188,543,"A16F4B-111111","3|2|FBF0C1-111111,50|-17|F2E4AB-111111,49|10|F7E6AE-111111,-33|9|FCF4CA-111111,-32|-13|FEEEB4-111111,-315|23|E74143-111111,-321|-24|D04646-111111,-290|-26|EEEEEE-111111,-305|-2|DEEAEE-111111"}
+,{"翰林求学未领取奖励确定领取按钮",566,427,714,488,"9F6540-111111","53|-5|FFEDB4-111111,-69|3|FFEEBF-111111,-79|-18|FFE69E-111111,93|0|FFEFB9-111111,183|-20|FAF7E7-111111,185|60|5D8F8A-111111"}
+
+,{"江湖同游",335,180,1190,545,"AC7B56-111111","-43|-19|F3E6B1-111111,-43|9|F7E6AE-111111,49|-19|F2E4AC-111111,48|9|F7E5AD-111111,32|-4|FBEFBA-111111,-271|-27|DF7C80-111111,-322|-3|D56666-111111,-293|7|EE8999-111111,-303|-3|E0C78D-111111"}
+,{"江湖同游入口",920,339,1159,455,"F6E6BA-111111","-83|-40|B1FFE6-111111,88|-40|B1FFE5-111111"}
+,{"江湖同游话筒页",1035,525,1275,699,"D64F3B-111111","-99|-98|F2E0AB-111111,-154|-105|BA8341-111111,-191|-97|F7D797-111111"}
+
+,{"踏雪无痕",329,176,1188,546,"B3855E-111111","-44|-18|F3E7B0-111111,-42|12|F7EAB4-111111,40|9|FDF3C9-111111,42|-14|F6E9B1-111111,-296|6|CCBBED-111111,-310|1|CCBBEC-111111,-274|22|CBC3E5-111111,-276|9|FFFEFF-111111"}
+,{"踏雪无痕入口",942,329,1136,373,"8B2222-111111","-91|-15|F9EABC-111111,107|24|E7C795-111111,96|-52|ACFDDF-111111,-75|-51|A8F7DA-111111,12|-20|FBECC2-111111,12|26|E5C592-111111,97|24|E7C795-111111"}
+,{"踏雪无痕胜利",369,70,917,307,"FCF1D0-111111","-163|45|FFE997-111111,178|55|FFE9A8-111111,55|27|FDF1D2-111111"}
+,{"踏雪无痕次数上限",367,392,915,532,"FFF1C2-111111","195|-1|FFF0C1-111111,341|-11|5D8F8A-111111,-104|57|5D8F8A-111111"}
+
+,{"名人轶事",326,172,1190,548,"AC7C56-111111","3|1|FBF0C1-111111,49|-3|F8DEAA-111111,-37|-4|FBEFBB-111111,-34|-19|FCF2C4-111111,-32|9|FDF4CA-111111,-279|-5|F0F0F0-111111,-265|-9|2D354E-111111,-262|15|212B39-111111,-312|-18|F5F6FC-111111"}
+,{"名人轶事入口",912,398,1174,525,"F7E7BA-111111","-86|-40|B0FFE5-111111,84|-39|B1FFE5-111111"}
+
+,{"恩仇录",331,174,1177,546,"FBEFB9-111111","-285|6|6793A0-111111,-296|-7|BC4334-111111,-316|16|6893A3-111111"}
+,{"恩仇录入口",922,340,1158,457,"F6E6BA-111111","-85|-39|B0FFE4-111111,84|-40|B1FFE6-111111"}
+
+,{"丝绸之路",326,169,1183,542,"9D643F-111111","3|0|FBF0BF-111111,-274|-3|D9B055-111111,-274|17|B14B28-111111,-297|-12|CD423A-111111,-307|-23|CA4F3E-111111"}
+,{"丝绸之路装备提交",928,445,1201,573,"FFEEB8-111111","3|44|5D8F8A-111111,-215|49|5D8F8A-111111,130|46|5D8F8A-111111"}
+,{"丝绸之路结束",908,421,1076,638,"9E9479-111111","94|-8|9F9471-111111,7|-128|6EE975-111111,27|-16|7A482A-111111"}
+
+,{"烽火令",323,172,1191,545,"B6916B-111111","-42|-16|F3E4AB-111111,-39|2|FCF0C1-111111,39|2|FBF1C2-111111,44|-13|F4E3AA-111111,-314|-20|A6DC4B-111111,-264|-10|DB7767-111111,-289|-1|F0866E-111111,-276|-2|FBDDA7-111111,-299|-1|D95D3F-111111"}
+,{"烽火令领取",583,501,699,539,"9F6642-111111","-49|10|FBE6B0-111111,-49|-19|FFEDAB-111111,66|-20|FFEDA9-111111,64|13|FBE8B3-111111,-235|42|5D8F8A-111111,340|-369|9E7D4C-111111,-289|-364|30625D-111111,85|-315|FBF3DB-111111,-72|-315|FBF3DB-111111"}
+
+,{"天下奇闻",326,169,1185,548,"975933-111111","-286|-18|51ADCD-111111,-290|-8|469DCB-111111,-286|11|379BB7-111111,-269|27|B14127-111111,-294|21|198B1A-111111"}
+,{"天下奇闻入口",988,400,1093,433,"9C4A3F-111111","9|0|F0DAAD-111111,-73|-52|AFFEE3-111111,96|-51|ADFDE1-111111,108|-16|FAEABD-111111,107|21|E9C896-111111,-85|21|E9C795-111111,-84|-14|F7E9BC-111111"}
+
+,{"师门任务",327,168,1185,474,"9D643E-111111","-46|-2|FBEFBB-111111,-287|-15|B7C7E8-111111,-299|5|7993C4-111111,-291|9|4FC3A2-111111,-275|9|4ABA9C-111111"}
+,{"师门任务结束",548,238,730,441,"CD6359-111111","22|48|C86A85-111111,-46|21|D27186-111111,-12|-66|FDF1CC-111111,20|-30|E99A88-111111"}
+
+,{"帮派任务",334,180,1181,476,"AC7C57-111111","4|12|FDF5CB-111111,-41|12|F7EAB4-111111,-28|-13|FEF1BF-111111,38|-14|FFF1BA-111111,36|8|FAF3C6-111111,-263|-4|4CAE52-111111,-291|-23|D67763-111111,-263|9|E7625B-111111,-278|0|FDF4E0-111111"}
+,{"帮派任务入口",911,394,1166,526,"FBEABF-111111","-81|-33|ADFDE0-111111,89|-33|ADFDE0-111111"}
+,{"帮派任务结束",238,603,266,631,"FFFFFF-111111","-9|-1|FCFCFC-111111,7|-1|F7F7F7-111111,-1|11|F4F3F3-111111,-10|11|FEFEFE-111111,8|11|FEFEFE-111111,-10|-8|FCFBFB-111111"}
+
+,{"名宿私塾",332,175,1183,542,"FFF9D6-111111","-310|4|F3C022-111111,-295|-3|E9644B-111111,-309|24|EFD53C-111111"}
+,{"名宿私塾入口",914,398,1160,527,"F8E9BC-111111","-84|-37|ADFDE0-111111,86|-37|ADFDE0-111111"}
+
+,{"竞技场",328,174,1188,549,"B3855E-111111","-40|10|F7EAB5-111111,48|-17|F3E4AC-111111,-309|6|CC9257-111111,-273|6|C89553-111111,-291|-26|59B3B3-111111,-312|-23|93BFBF-111111,-292|33|FFFEEC-111111,-292|24|368B91-111111"}
+,{"竞技场入口",916,401,1156,520,"F7E9BC-111111","-83|-37|B1FFE5-111111,87|-38|B0FFE5-111111"}
+
+,{"修行多倍经验开",460,564,469,566,"EDEFEE-111111","0|-22|78A596-111111,1|-33|F3F1DF-111111,9|-3|76AA9C-111111,-9|-3|719C90-111111,16|-19|D5E1E0-111111,0|27|E3D6BE-111111"}
+,{"修行多倍经验关",460,564,469,566,"7EB1A1-111111","0|-22|79AA99-111111,1|-33|F3F1DF-111111,9|-3|7AAC9D-111111,-9|-3|7BAA9C-111111,16|-19|F3F1DF-111111,-9|27|E7DAC3-111111"}
+
+
+,{"修行进入按钮",963,532,1027,573,"A26943-111111","42|2|FFEEBB-111111,44|-13|FFE6A1-111111,44|20|FBE8B4-111111,-82|20|FBE8B4-111111,-85|-16|FFE193-111111,86|-1|B7DBD3-111111,99|-7|D7BD82-111111,107|-3|2C7875-111111,-251|-2|FEECB6-111111"}
+,{"修行自动多倍提示框取消按钮",510,414,579,452,"A56E49-111111","5|0|FFF0C1-111111,68|-20|FDE298-111111,68|12|FBE7B1-111111,-57|15|FBE9B6-111111,-58|-20|FDE298-111111,258|-10|FFEDB3-111111,144|-8|FFEDB5-111111,1|55|5D8F8A-111111,-133|2|5D8F89-111111"}
+
+,{"退出修行按钮",636,40,644,47,"FFFFFF-111111","-3|3|FFFFFF-111111,4|0|FFFFFF-111111,67|15|DA8357-111111,24|24|D56F5E-111111,-63|16|DA8357-111111,-74|2|E7805E-111111,-82|2|DA8553-111111"}
+,{"修行战斗界面",32,131,37,135,"E9FEFB-111111","15|-12|5AABAC-111111,11|14|2F7370-111111,-23|0|388F8B-111111,-4|1|E6FDFD-111111,-3|-16|6EBABA-111111,0|16|2E7371-111111"}
+
+,{
+{"姜小虎",514,214,519,219,"BA8A44-111111","2|3|BF9549-111111,3|11|B68E43-111111,-9|9|94633D-111111,-9|3|966632-111111,12|-3|DAAF55-111111,2|14|A7803C-111111"}
+
+--{"姜小虎",493,209,548,261,"C1974A-111111","6|-2|D5AF57-111111,0|11|A7843E-111111,7|5|CFA854-111111,1|15|A57F39-111111,-4|15|986D31-111111,7|16|AC8538-111111,-20|16|915127-111111,-19|22|975428-111111"}
+--,{"姜小虎2",493,209,548,261,"CCA150-111111","0|-5|C29047-111111,-3|5|B78B44-111111,-1|7|BC9348-111111,3|1|D3AA54-111111,3|-3|D4AB55-111111"}
+--,{"姜小虎3",453,199,563,302,"A93546-111111","7|0|BB3B4F-111111,56|-37|BF9548-111111,57|-47|C7974B-111111,90|3|1C1D28-111111,99|3|1E1E2C-111111"}
+--,{"姜小虎4",491,212,548,266,"D4AD56-111111","-10|1|B38440-111111,-12|12|986D34-111111,-3|6|CAA250-111111,-3|18|A8863C-111111,-16|23|935928-111111,-23|13|8C5829-111111,14|56|1B1A25-111111,31|51|1A1B27-111111,58|42|272A3D-111111"}
+}
+
+}
+
+--退出队伍
+function ExitTeam()
+    --关闭遮挡页面
+    TapCloseButton()
+    sleep(1000)    
+    Debug("正在 退出队伍..")
+    if XM.Find({"界面","背包"}) then
+        
+        --点击队伍tab
+        XM.Find({"界面","队伍tab未选中状态"},true)
+        
+        sleep(1000)
+        
+        if XM.Find({"界面","队伍tab选中状态"}) then
+            
+            if  XM.Find({"界面","未在队伍状态"}) then
+                return true
+            else               
+                tap(1045,160) --点击自己
+                sleep(500) 
+                tap(935,237)--点击退出
+                sleep(500)
+                tap(737,438) --确定退出
+                sleep(500)
+                return true
+            end            
+        end           
+    else
+        Debug("不在主页.无法进行队伍操作..")
+        return false
+    end 
+end
+
+--进入修行
+function EnterPractice()
+    sleep(1000)
+    XM.Find({"界面","功能展开箭头"},true) --功能展开箭头
+    sleep(1500)
+    XM.Find({"界面","修行按钮"},true) --修行按钮      
+    sleep(1500)
+    if XM.Find({"任务","修行多倍经验开"},true)  then --去掉多倍勾选
+        Debug("关闭 多倍")
+    else
+        Debug("多倍为 关闭状态.")
+    end
+    sleep(300)
+    XM.Find({"任务","修行进入按钮"},true) 
+    sleep(1000)
+    XM.Find({"任务","修行自动多倍提示框取消按钮"},true) 
+    
+end
+
+--开始打老虎
+function BattleTiger()
+    local changeNum=tonumber(editgettext("爆刷姜小虎奖牌每轮该次开启多倍")) --双倍开启回合 
+    local errorCloseExpGoodsNum=tonumber(editgettext("爆刷姜小虎奖牌异常回合数强制关闭多倍"))--强制关闭
+    local startTime=timenow() --开始时间    
+    local sleepTime=1000 --变速
+    local StateMsg="" --提示任务状态信息
+    local sw=true --开关(提高性能)
+    
+    local battleNum = 0 --战斗次数
+    local allBattleNum = 0 --总战斗数量
+    
+    local j_Tiger = false --老虎状态
+    local j_TigerNum_All = 0 --老虎数量
+    local j_TigerNum_UseExpGoods = 0
+    local j_TigerNum_NotUseExpGoods = 0          
+    local expGoods=false  --多倍经验 是否开启
+    local chance=0
+    local bchance=0
+    local outTime=0
+    while true do
+        
+        sleep(sleepTime)        
+        local runTime= XM.DateRet(timediff("s",startTime,timenow()))
+        if XM.Find({"界面","任务tab偏旁"}) then
+            sleep(200)            
+            
+            if XM.Find({"任务","退出修行按钮"}) then     
+                
+                if XM.Switch("修行界面") then
+                    
+                    XM.OpenSwitch("战斗界面")                    
+                    outTime=0
+                    --打了老虎 关闭多倍
+                    if j_Tiger or battleNum >= errorCloseExpGoodsNum then
+                        
+                        j_Tiger=false --关闭 老虎状态
+                        
+                        if expGoods then                           
+                            if ChangeExpGoods(2) then
+                                expGoods=false   
+                            else
+                                --异常处理
+                                ErrorExpGoods()
+                                return false
+                            end                            
+                        end
+                    end
+                    
+                    --打开多倍                    
+                    if battleNum==changeNum and expGoods==false and j_Tiger==false then                        
+                        
+                        if ChangeExpGoods(1) then
+                            expGoods=true                        
+                        else
+                            --异常处理
+                            ErrorExpGoods()
+                            return false
+                        end                        
+                    end                      
+                end
+                
+                
+                if j_TigerNum_All>0 then                    
+                    chance=tostring(j_TigerNum_UseExpGoods/j_TigerNum_All) --概率
+                    bchance= strleft(chance,strfind(chance,".")+3) *100
+                end
+                
+                --降低提示框的显示频率
+                if XM.Timer("状态信息框",3) then
+                    StateMsg=runTime .."   间隔: "..(sleepTime/1000) .."s   战斗总数: "..allBattleNum                 
+                    StateMsg=StateMsg.."\n--------统计--------"
+                    StateMsg=StateMsg.."\n虎数量 (多倍/普通/总计): "..j_TigerNum_UseExpGoods .." / "..j_TigerNum_NotUseExpGoods.." / "..j_TigerNum_All .."  命中率: ".. bchance.." %"
+                    StateMsg=StateMsg.."\n-------界面设定-------"
+                    StateMsg=StateMsg.."\n开/关多倍 (每轮第x次): ".. changeNum.." / "..errorCloseExpGoodsNum
+                    StateMsg=StateMsg.."\n--------状态--------"
+                    StateMsg=StateMsg.."\n多倍状态: "..tostring(expGoods).."  接下来本轮第"..(battleNum+1).."次战斗"       
+                    
+                    Debug(StateMsg)                    
+                end
+                
+            end
+            
+        else       
+            
+            sleep(200)
+            if XM.Find({"任务","修行战斗界面"}) then                 
+                XM.MsgClose()
+                if XM.Switch("战斗界面") then   
+                    XM.OpenSwitch("修行界面")                    
+                    allBattleNum=allBattleNum+1   --战斗总数
+                    battleNum=battleNum+1		--当前轮 战斗数     
+                    StateMsg="本轮第"..battleNum.."次战斗\n加倍状态:"..tostring(expGoods) 
+                end
+                outTime=outTime+1
+                --老虎开关                 
+                if XM.Find({"任务","姜小虎"}) and j_Tiger==false and outTime<=3  then     
+                    
+                    j_Tiger=true
+                    
+                    j_TigerNum_All =j_TigerNum_All +1  --所有老虎数
+                    
+                    StateMsg=StateMsg.."\n遇到姜小虎!!!!"
+                    
+                    if expGoods then
+                        --多倍虎
+                        j_TigerNum_UseExpGoods = j_TigerNum_UseExpGoods +1                            
+                    else
+                        --普通虎
+                        j_TigerNum_NotUseExpGoods = j_TigerNum_NotUseExpGoods  +1
+                    end
+                    
+                    local logs="总虎: "..j_TigerNum_All .." 多倍/普通虎: "..j_TigerNum_UseExpGoods .." / "..j_TigerNum_NotUseExpGoods .."命中率: "..bchance.." %  战斗总数: "..allBattleNum.." 本轮战斗数: "..battleNum .."  多倍状态: "..tostring(expGoods).." 界面设定第 ".. changeNum.." 次后开多倍  脚本运行时长: "..runTime
+                    
+                    battleNum=0 --重置战斗次数
+                    
+                    if battleNum==0 then
+                        Debug("每轮次数 归0 成功!!",true)
+                        StateMsg=StateMsg.."\n每轮次数 归0 成功!!"                            
+                        
+                    else
+                        Debug("每轮次数 归0 失败!!",true)
+                        StateMsg=StateMsg.."\n每轮次数 归0 失败!!"
+                        
+                        WriteTxtFile(logs)
+                        Debug(StateMsg)
+                        ErrorExpGoods()
+                        return false
+                    end
+                    
+                    WriteTxtFile(logs)
+                else                    
+                    if outTime<=3 then                     
+                        StateMsg=StateMsg.."\n计时: "..outTime.."/3"
+                    else
+                        StateMsg="停止寻找老虎.."
+                    end                    
+                end
+                
+                Debug(StateMsg)
+            end            
+        end       
+        
+    end
+end
+
+--姜小虎任务 多倍开关 异常处理
+function ErrorExpGoods()
+    
+    sleep(200)
+    while true do
+        Debug("开始 异常处理.")
+        if XM.Find({"任务","退出修行按钮"},true) then
+            
+            sleep(500)
+            XM.RndTap(730,436)
+            return true
+        end
+    end
+    
+end
+
+--切换多倍经验
+function ChangeExpGoods(cType)
+    XM.MsgClose()
+    local res=false
+    XM.RndTap(425,38)  
+    sleep(1300)
+    
+    XM.RndTap(673,40)
+    sleep(1000)
+    
+    
+    if cType==1 then       --打开多倍
+        
+        if  XM.Find({"任务","修行多倍经验开"}) then
+            Debug("多倍 状态为开,不需要再次开启",true) 
+            res=true
+        else
+            if XM.Find({"任务","修行多倍经验关"},true) then
+                Debug("多倍 开启成功",true)  
+                res=true
+            else
+                Debug("***系统错误:开 多倍时请联系作者..",true)
+            end
+        end
+        
+        
+    elseif cType==2 then    --关闭多倍
+        
+        if  XM.Find({"任务","修行多倍经验关"}) then
+            Debug("多倍 状态为关,不需要再次关闭",true) 
+            res=true
+        else
+            if XM.Find({"任务","修行多倍经验开"},true) then
+                Debug("多倍 关闭成功",true)  
+                res=true
+            else
+                Debug("***系统错误: 关 多倍时 请联系作者..",true)
+            end
+        end
+        
+    end
+    
+    sleep(500)    
+    XM.RndTap(1120,71)
+    
+    sleep(1000)    
+    XM.RndTap(754,39)
+    sleep(1000)
+    return res
+end
+
+
+--坐标超时(在原地不动了)
+function ZBTimeOut(list)
+    local zbColorNum_old=0 --旧坐标色点数
+    local zbColorNum_new=0 --新坐标色点数
+    local timeOut=0--超时时间
+    local timeOutState=false --超时状态
+    --检查是否完成
+    while true do
+        sleep(1500)
+        Debug("提示:\n任务完成后,角色会停止移动(正常现象),然后脚本会进行任务判定..")
+        sleep(1500)
+        zbColorNum_new = XM.FindNumRet({"界面","坐标色点"})
+        
+        if XM.TimerFirst(list.name.."进行中",7) then                            
+            Doing(list)
+        end
+        
+        if 2 < zbColorNum_new and zbColorNum_new < 450 then                        
+            
+            --判断坐标是否发生变化
+            if zbColorNum_old==zbColorNum_new then   
+                
+                timeOut=timeOut+3
+                Debug(list.name.."任务完成判定倒计时(请勿移动角色):"..timeOut.."/30",true)
+                if timeOut>=30 then
+                    --超时
+                    timeOutState=true
+                end
+            else                               
+                --左边变动,重置超时时间
+                zbColorNum_old=zbColorNum_new
+                timeOut=0                
+            end
+        end       
+        
+        --关掉对话
+        if zbColorNum_new==0 then
+            if XM.Find({"界面","跳过对话"}) then                 
+                if XM.Timer(list.name.."跳过对话",4) then
+                    跳过对话() 
+                    TapCloseButton(false)                    
+                end
+                sleep(3000)
+            end
+        else
+            XM.TimerInit(list.name.."跳过对话")
+        end        
+        
+        --超时
+        if timeOutState then            
+            return true
+        end        
+    end     
+end
+
+--进入任务 入口
+function TaskEnter(list)
+    while true do
+        sleep(1000)
+        if XM.Find({"任务",list.name.."入口"},true) then           
+            return true
+        else
+            Debug("等待[ "..list.name.." ]入口..大概20秒..",true)
+            --20s后 超时
+            if XM.Timer(list.name.."入口",20) then
+                
+                Debug("等待[ "..list.name.." ]入口 超时.重新领取任务..")
+                
+                sleep(1000)
+                return false 
+            end
+        end
+    end
+end
+
+--等待副本结束
+function WaitFuBenOver(list)
+    
+    GetTaskingMsg(list)
+    
+    if 进入活动_道具() then        
+        sleep(1000)
+        if OrganizeTeam(list) then
+            if XM.Switch("副本组队成功") then
+                --组队成功
+                return list.name
+            else
+                Debug("已经组过队伍..开始副本.")
+            end            
+        else
+            --任务已经完成 无需组队 
+            return TaskOver(list.name)
+        end
+        
+        if XM.Find({"任务",list.name},true) then
+            
+            --走到副本入口
+            if Tap_副本按钮() then
+                
+                sleep(1000)
+                tap(1047,581) --进入副本
+                sleep(500)
+                
+                Wait(list,180) --等待180秒
+                
+                local zbColorNum_old=0 --旧坐标色点数
+                local zbColorNum_new=0 --新坐标色点数
+                local timeOut=0--超时时间
+                local timeOutState=false --超时状态                
+                
+                while true do
+                    sleep(3000)     
+                    
+                    if timeOutState==false then 
+                        
+                        zbColorNum_new = XM.FindNumRet({"界面","坐标色点"})               
+                        
+                        if 2 < zbColorNum_new and zbColorNum_new < 450 then                        
+                            
+                            --判断坐标是否发生变化
+                            if zbColorNum_old==zbColorNum_new then   
+                                
+                                timeOut= timeOut + 3
+                                Debug("卡机判断:"..timeOut.."/30")
+                                if timeOut>=30 then
+                                    --超时
+                                    timeOutState=true
+                                end
+                            else                               
+                                --左边变动,重置超时时间
+                                zbColorNum_old=zbColorNum_new
+                                timeOut=0
+                            end
+                        end                        
+                    else                        
+                        Debug(list.name.." 卡机状态..  正在处理...",true)
+                        --卡机
+                        if XM.Find({"任务","副本内队伍界面"},true) then
+                            sleep(2000)
+                            XM.RndTap(1119,193)                           
+                        elseif XM.Find({"任务","副本内任务界面"}) then
+                            sleep(2000)
+                            XM.RndTap(1119,193)                            
+                        else
+                            ErrorAction()
+                            
+                            if XM.Timer(list.name.."副本卡机状态",20) then
+                                
+                                if  XM.Find({"任务","退出副本按钮"},true) then
+                                    sleep(1000)
+                                    XM.RndTap(726,438) --点击确认
+                                    sleep(5000)
+                                else
+                                    sleep(1000)
+                                    XM.RndTap(652,43) 
+                                    sleep(2000)
+                                    XM.RndTap(726,438)
+                                    sleep(5000)
+                                end
+                                return list.name --退出任务
+                            end
+                            
+                            
+                        end
+                        
+                        timeOutState=false
+                    end  
+                    if XM.Timer(list.name.."副本内关闭窗口",30) then
+                        Debug("正在关闭遮挡窗口..")
+                        TapCloseButton()                    
+                    end
+                    
+                    --寻找结束页面
+                    if XM.Find({"任务","副本结算页面"},true) then            
+                        Debug("["..list.name.."]副本结束...",true)                                               
+                        
+                        --点击 取消继续副本
+                        sleep(2000)     
+                        tap(578,442)
+                        TapCloseButton()
+                        return list.name
+                    else
+                        if XM.TimerFirst(list.name.."进行中",12) then
+                            Doing(list)                            
+                        end
+                    end
+                    
+                end
+                
+                if WaitFuBenOver(list) then
+                    return list.name
+                end               
+                
+            else
+                Msg("等待 "..list.name.."副本入口超时")
+            end
+        else
+            return TaskOver(list.name)
+        end   
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+--组5人队伍
+function OrganizeTeam(list)    
+    if XM.Switch("副本组队") then
+        
+        if XM.Find({"任务",list.name}) then                      
+            
+            TapCloseButton()
+            Debug(list.name.."状态为 [可领取] ,开始组队..")
+            sleep(1000)
+            if XM.Find({"界面","背包"}) then
+                
+                --点击队伍tab
+                XM.Find({"界面","队伍tab未选中状态"},true)
+                
+                sleep(1000)
+                
+                if XM.Find({"界面","队伍tab选中状态"}) then
+                    
+                    if  XM.Find({"界面","未在队伍状态"}) then
+                        
+                    else
+                        Debug("检查队伍人数...")
+                        --点击5号位置
+                        tap(1071,485)
+                        sleep(1000)
+                        --未找到5号位置,则退出现有队伍,重新匹配队友 
+                        if XM.Find({"界面","五号位置请离按钮"}) then
+                            Debug("队伍5人,完成组队....") 
+                            return true                            
+                        else
+                            Debug("队伍不满5人,退出退伍.开始组队....")     
+                            
+                            tap(1045,160) --点击自己
+                            sleep(500) 
+                            tap(935,237)--点击退出
+                            sleep(500)
+                            tap(737,438) --确定退出
+                            sleep(500)                              
+                        end                           
+                    end
+                    Debug("队伍不满5人,退出退伍.开始组队....")     
+                    --组建队伍
+                    BuildTeam()
+                    
+                    Debug("正在组队中.....")   
+                    
+                    --确认组队是否完成
+                    while true do        
+                        sleep(3000)
+                        if  XM.Find({"界面","背包"})   then
+                            --找到背包证明没有匹配成功
+                            Debug("正在组队中.....")                            
+                        else            
+                            if  XM.Find({"界面","队伍满人按钮"},true) then
+                                Debug("组队成功!!!!")
+                                sleep(2000)
+                                return true
+                            else
+                                Debug("正在组队中.....")
+                            end
+                        end
+                    end
+                    
+                    sleep(500)
+                    
+                end           
+            else
+                Debug("不在主页,无法进行队伍操作..")
+            end 
+            
+        else            
+            Debug("任务已经完成 无需组队--")
+            return false --任务已完成
+        end        
+    else
+        traceprint("已经组过队伍..")
+        return true --已经本次已经组过队
+    end    
+    
+end
+
+
+--领取每日活动奖励
+function GetEverydayActivityReward(x,y)
+    sleep(500) 
+    tap(x,y) 
+    
+    sleep(500)    
+    tap(218,472)    --点击空白处
+    
+end
+
+--任务超时提醒
+function TimeOut(list,taskTypeName)    
+    taskTypeName = taskTypeName or ""
+    list.taskOutTime = list.taskOutTime or 20
+    if XM.Timer(list.name..taskTypeName,list.taskOutTime) then
+        Debug("["..list.name..taskTypeName .."]超时...重新开始任务..",true)
+        sleep(2000)
+        return true                    
+    else
+        Debug("开始判断["..list.name..taskTypeName.."]超时, 大约"..list.taskOutTime.."秒")
+        
+    end
+    
+    return false    
+end
+
+--出现错误后的动作
+function ErrorAction()
+    
+    --关闭按钮
+    TapCloseButton()    
+    Debug("可能发生了卡机,调整位置中..",true)
+    XM.Swipe(651,364,487,357,5,2000)
+    XM.Swipe(651,364,551,234,5,2000)
+    XM.Swipe(651,364,751,217,5,2000)
+    XM.Swipe(651,364,812,391,5,2000)
+    XM.Swipe(651,364,619,463,5,2000)
+    XM.Swipe(651,364,751,487,5,2000)        
+    
+end
+--领取任务提示
+function GetTaskingMsg(list)
+    Debug("正在领取["..list.name.."]任务...")
+end
+
+--显示任务信息
+function ShowTaskMsg()    
+    local taskMsg=""
+    if #TaskTable==0 then
+        taskMsg=taskMsg.."⭐⭐⭐⭐⭐⭐⭐⭐任务已经全部完成⭐⭐⭐⭐⭐⭐⭐⭐\n"  
+        taskMsg=taskMsg.."--------------------------------\n"
+    end
+    
+    --拼接显示信息
+    for i=1,#TaskOverTable,1 do        
+        taskMsg=taskMsg..i..". "..TaskOverTable[i].."\n"         
+    end     
+    taskMsg=taskMsg.."--------------------------------\n"
+    --拼接显示信息
+    for i=1,#TaskTable,1 do        
+        taskMsg=taskMsg..i..". "..TaskTable[i].."\n"  
+    end      
+    
+    if #TaskTable>0 then
+        taskMsg=taskMsg.."--------------------------------\n"
+        taskMsg=taskMsg.."\n⭐⭐⭐⭐⭐⭐⭐⭐任务添加成功..4秒后 开始执行..."   
+    end  
+    
+    XM.Msg(taskMsg,344,68)  
+    sleep(1000)
+end
+function 跳过对话()
+    
+    while true do
+        
+        if XM.Find({"界面","跳过对话"},true) then
+            
+        else
+            sleep(1000)
+            return true
+        end
+        sleep(2000)
+    end
+    
+    
+end
+
+--是否是战斗界面
+function IsCombatFace()
+    return XM.Find({"界面","战斗界面"})
+end
+
+--移除 x个队友
+function RemoveTeammate(num)
+    Debug("移除"..num.."名队友..")
+    XM.Find({"界面","队伍tab未选中状态"},true) 
+    sleep(500)
+    --移除x个一条队友
+    for i=1,num,1 do
+        
+        tap(1083,261)
+        sleep(500)
+        tap(929,261)
+        sleep(500)
+        tap(732,438)
+        sleep(500)
+    end 
+end
+
+
+--正在进行的任务
+function Doing(list)
+    Debug("***["..list.name.."]进行中-->>>>>>")   
+end
+
+--关闭使用物品界面
+function TapCloseGoods()    
+    sleep(500)
+    while true do
+        
+        if XM.Find({"界面","关闭使用物品界面"},true) then            
+            
+        else           
+            return true             
+        end       
+        sleep(500)
+    end
+    
+end
+
+
+--任务结束
+function TaskOver(str)    
+    Debug("["..str.."]已完成...")
+    TapCloseButton() 
+    if #TaskTable >0 then
+        table.remove(TaskTable,1)        
+        table.insert(TaskOverTable,(#TaskOverTable+1),str.." -----------✔已完成")        
+    end    
+    
+    if #TaskTable > 0 then --防止无任务后 报错
+        Debug("["..str.."]已完成...进行下一个任务 --->>>> "..TaskTable[1],true)
+    end 
+    
+    sleep(2000)
+    
+    return "TheLegendOfCondorHero"
+end
+
+--点击关闭按钮
+function TapCloseButton(isCloseGoods)
+    
+    sleep(500)    
+    XM.Find({"界面","关闭"},true) 
+    
+    if isCloseGoods==nil then
+        isCloseGoods= true   
+    end
+    
+    if isCloseGoods then        
+        --关闭物品
+        TapCloseGoods()   
+    end
+    
+    sleep(500)
+    XM.Find({"界面","关闭"},true) 
+end
+
+--检查屏幕信息
+function CheckRun()
+    
+    setfloatwindowlocation(5,718)    
+    Debug("调整悬浮窗位置到左下角")
+    
+    local msg=""
+    local list = XM.GetScreenSimulator() --当前分辨率    
+    
+    msg=msg.."推荐分辨率: 720 * 1280  DPI: 320 \n当前分辨率: "..list[1].." * "..list[2].."  DPI: "..list[3]
+    
+    msg=msg.."\n---------------------------------------------"
+    msg=msg.."\n【飞天助手】海量免费辅助搭配【红手指】\n免充电、免Root、免流量、24小时离线挂机!"
+    msg=msg.."\n---------------------------------------------"
+    msg=msg.."\n任务日志 在设备的 【根目录 / 神雕2脚本日志】 文件夹中  \n文件名格式: 年 - 月 - 日.txt  \n(可以查看此文件查看历史任务情况)\n\n脚本出现异常可以将此日志发给作者.."
+    msg=msg.."\n---------------------------------------------"    
+    msg=msg.."\n请确保\n1.已经进入游戏\n2.所有窗口已关闭\n3.画质为 [省电]\n4.打开[匹配机器人]"
+    msg=msg.."\n---------------------------------------------"  
+    if list[1]==720 and list[2]==1280 and list[3]==320 then
+        
+    else 
+        msg=msg.."\n分辨率不匹配.脚本运行过程可能不稳定."        
+    end     
+    
+    msg=msg.."\n智能检测运行环境,正在启动【新版防封框架】..."  
+    
+    msg=msg.."\n---------------------------------------------"  
+    for i=5,0,-1 do
+        sleep(1000)
+        CenterMsg(msg.."\n"..i.."秒后开始运行脚本....")        
+    end    
+    
+end
+
+--获取页面选择的任务
+function GetSelectTask()    
+    
+    --清空任务表
+    TaskTable={}
+    
+    --遍历多选框结果.
+    for i=#CheckboxTable,0,-1 do        
+        if XM.GetUI(CheckboxTable[i]) then           
+            --加入任务表
+            table.insert(TaskTable,1,CheckboxTable[i])                       
+        end   
+    end     
+    sleep(1000)    
+end
+
+
+--创建队伍
+function  BuildTeam()
+    Debug("创建队伍,开始匹配....")
+    --进入队伍页面
+    tap(1181,120)
+    sleep(1000)    
+    
+    --创建新的队伍   
+    
+    sleep(1500)
+    tap(869,142) --点击目标
+    
+    sleep(1500)
+    XM.Swipe(329,235,327,414) --划动列表
+    
+    sleep(1500)            
+    tap(303,171)--点击日常活动
+    
+    sleep(1500)
+    tap(412,398)--点击组队副本 箭头
+    
+    sleep(1500)
+    tap(565,170)--点击夜袭敌营
+    
+    sleep(1500)
+    tap(725,592) --点击创建队伍
+    
+    sleep(1500)
+    tap(1049,583) --点击开始匹配
+    
+    sleep(1500)                    
+    tap(1161,55)--关闭选择地图页面
+    
+    sleep(1500)
+    tap(1247,43)   --关闭 组队页面
+    
+    TapCloseButton()
+end
+--屏幕中间显示提示
+function CenterMsg(msg)
+    XM.Msg(msg,442,24)    
+end
+
+--点击副本按钮
+function Tap_副本按钮()
+    for i=20,0,-2 do                  
+        if XM.Find({"任务","副本入口按钮"},true) then            
+            return true
+        else
+            Debug("没有到达副本门口..倒计时:"..i)
+        end
+        sleep(2000)                   
+    end  
+    return false
+end
+
+function 进入活动_经验()
+    --进入活动页面
+    if GoActivity_All() then
+        
+        sleep(2000)
+        if XM.Find({"界面","活动界面"}) then 
+            
+            Tap_经验页面()
+            
+            sleep(1000)
+            
+            return true
+            
+        else
+            return false
+        end
+    else
+        return false
+    end    
+    
+end
+
+function 进入活动_休闲()  
+    
+    --进入活动页面
+    if GoActivity_All() then
+        
+        sleep(2000)
+        if XM.Find({"界面","活动界面"}) then 
+            
+            Tap_休闲界面()
+            
+            sleep(1000)
+            
+            return true
+            
+        else
+            return false
+        end
+    else
+        return false
+    end   
+end
+
+function 进入活动_道具()    
+    --进入活动页面
+    if GoActivity_All() then        
+        sleep(1000)
+        if XM.Find({"界面","活动界面"}) then             
+            Tap_道具界面()            
+            sleep(1000)            
+            return true            
+        else            
+            return false
+        end
+    else
+        return false
+    end   
+end
+
+--进入活动_全部
+function GoActivity_All()
+    --是否是战斗界面    
+    if IsCombatFace()  then
+        Debug("战斗界面...")  
+        return false
+    else        
+        return XM.Find({"界面","活动按钮"},true)         
+    end    
+    
+end
+
+function Tap_经验页面()    
+    ResetTaskCard()
+    tap(541,152)
+end
+--点击 道具界面
+function Tap_道具界面()   
+    ResetTaskCard()
+    tap(675,152)
+end
+--点击 休闲界面
+function Tap_休闲界面()
+    ResetTaskCard()
+    tap(813,151)
+end
+--重置任务卡 位置
+function ResetTaskCard()
+    sleep(500)
+    XM.RndTap(212,281)
+    sleep(500)
+    XM.RndTap(202,200)
+    sleep(500)
+end
+
+
+CheckboxTable={
+"翰林求学"
+,"恩仇录"
+,"踏雪无痕"
+
+,"烽火令"
+,"丝绸之路"
+,"名人轶事"
+
+--时间较长的任务
+,"师门任务"
+,"帮派任务"
+,"天下奇闻"
+,"竞技场"
+
+--每日副本一条龙
+,"夜袭敌营"
+,"五绝令"
+,"勇闯绝情谷"
+,"江湖同游"
+
+,"领取每日活动奖励"
+,"爆刷姜小虎奖牌"
+}
+
+local btnId="allChoice" 
+local btnName_all="✔全选"
+local btnName_notall="✖不选"
+local btnName_wait="(￣3￣)稍等"
+--全选/不选
+function AllChoice_Click()      
+    
+    local content=buttongettext(btnId)  
+    
+    if content==btnName_all then        --全选
+        
+        BtnWait()     
+        ChoiceBox(true)
+        buttonsettext(btnId,btnName_notall)
+        
+    elseif content==btnName_notall then  --不选
+        
+        BtnWait()
+        ChoiceBox(false)        
+        buttonsettext(btnId,btnName_all)
+        
+    else
+        --不做操作
+    end  
+end
+--按钮改为稍等
+function BtnWait()
+    sleep(100)
+    buttonsettext(btnId,btnName_wait)
+    sleep(100)
+end
+--改变多选框
+function ChoiceBox(isChoice)
+    for k,v in ipairs(CheckboxTable) do       
+        
+        if checkgetselected(v)~=isChoice then
+            
+            if v == "爆刷姜小虎奖牌" then
+                checksetselected(v,false)
+            else
+                checksetselected(v,isChoice)
+                sleep(100)
+            end
+        end
+        
+    end
+end
+
+function Github()
+    setclipboard("https://github.com/xxxxue/vue-vuetify-electron")
+   
+    messagebox("网址复制成功,请粘贴到浏览器中查看.")
+end
+
+function QQGroup()
+    setclipboard("780091710")  
+
+    messagebox("Q群复制成功,请粘贴到QQ中查找.")
+end
+--
+--神雕侠侣
+--
+
+Unit.State.Name="TheLegendOfCondorHero"
+Settings.Process.IsLoop=true
+Settings.Process.SleepTime=1000
+Settings.Process.IsXMLog=true
+
+--------------↑-----↑-------↑---↑----设置↑--------↑---↑------
+
+--任务表
+TaskTable={}
+--任务完成表
+TaskOverTable={}
+
+
+--调度器
+Unit.Param.TheLegendOfCondorHero={name="TheLegendOfCondorHero"}
+function Unit.State.TheLegendOfCondorHero(list) 
+
+    if XM.Switch("初始化") then
+        
+        --指端广告入口
+        showscriptad()     
+        
+        --检查环境信息
+        CheckRun()
+        
+        --获取界面选择的任务
+        GetSelectTask()       
+        
+    end
+    TapCloseButton()
+    if #TaskTable >0 then
+        
+        Debug("执行任务>>>>"..TaskTable[1],true)
+        return TaskTable[1]
+    else        
+        
+        ShowTaskMsg()         
+        sleep(990000)
+    end
+    
+    return list.name
+end
+
+
+Unit.Param.翰林求学={name="翰林求学"}
+function Unit.State.翰林求学(list) --✔
+    
+    GetTaskingMsg(list)
+    if 进入活动_休闲() then
+        
+        if XM.Find({"任务","翰林求学"},true) then
+            
+            --答案坐标ABCD
+            Answer={
+            {711,341}
+            ,{1019,337}
+            ,{702,467}
+            ,{1006,467}
+            }     
+            
+            for i=0,10,1 do 
+                sleep(2000)
+                --随机数
+                an= Answer[rnd(1,4)]        
+                tap(an[1],an[2])    
+                
+            end   
+            sleep(1000)
+            tap(342,459)
+            sleep(2000)
+            tap(1138,76) 
+            sleep(2000)            
+            XM.Find({"任务","翰林求学未领取奖励确定领取按钮"},true)                        
+        else        
+            return TaskOver(list.name) 
+        end       
+        
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.恩仇录={name="恩仇录"}
+function Unit.State.恩仇录(list)--✔
+    GetTaskingMsg(list)
+    if 进入活动_道具() then
+        
+        if XM.Find({"任务","恩仇录"},true) then        
+            
+            while true do
+                sleep(1000)
+                if TaskEnter(list) then  
+                    Doing(list)
+                    sleep(2000)
+                    tap(1018,545)  --进入扫荡
+                    
+                    sleep(500)
+                    tap(761,435)--确定 退出组队状态                
+                    
+                    while true do                    
+                        
+                        if XM.Find({"界面","背包"}) then
+                            sleep(2000)
+                            tap(1212,275)
+                            return TaskOver(list.name)
+                        else
+                            Doing(list)
+                        end
+                        sleep(3000)                     
+                    end                
+                else
+                    TapCloseButton()
+                    return list.name                    
+                end
+                
+            end       
+            
+        else        
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.踏雪无痕={name="踏雪无痕"}
+function Unit.State.踏雪无痕(list)--✔
+    GetTaskingMsg(list)
+    if 进入活动_休闲() then       
+        
+        if XM.Find({"任务","踏雪无痕"},true) then        
+            
+            while true do                
+                
+                if TaskEnter(list) then                
+                    sleep(2000)
+                    if XM.Find({"任务","踏雪无痕次数上限"},true) then                    
+                        return TaskOver(list.name)
+                    end            
+                    --等待25秒
+                    Wait(list,25)
+                    while true do
+                        Doing(list)
+                        
+                        if XM.Find({"任务","踏雪无痕胜利"}) then
+                            sleep(1000)
+                            tap(285,578)    
+                            return TaskOver(list.name)
+                        end
+                        sleep(2000)                       
+                        
+                        --超时
+                        if TimeOut(list,"结束") then
+                            return list.name
+                        end 
+                    end                
+                else                   
+                    TapCloseButton()
+                    return list.name
+                    
+                end                
+                sleep(3000)
+            end       
+            
+        else
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.烽火令={name="烽火令"}
+function Unit.State.烽火令(list)--✔
+    GetTaskingMsg(list)
+    
+    if 进入活动_经验() then
+        
+        if XM.Find({"任务","烽火令"},true) then              
+            
+            sleep(3000)
+            if XM.Find({"任务","烽火令领取"},true) then                
+                Debug("领取成功...")            
+            else
+                Debug("玩家没有勾选 [ 自动 烽火令 ].3秒后跳过烽火令任务..") 
+                sleep(3000)
+            end
+            
+            sleep(1000)
+            
+            return TaskOver(list.name)
+        else
+            return TaskOver(list.name)
+        end   
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name    
+end
+
+
+Unit.Param.丝绸之路={name="丝绸之路"}
+function Unit.State.丝绸之路(list)--✔ 
+    
+    GetTaskingMsg(list)
+    
+    if 进入活动_道具() then
+        
+        if XM.Find({"任务","丝绸之路"},true) then  
+            
+            while true do
+                
+                tap(1038,602)            
+                
+                TapCloseGoods()
+                sleep(500)
+                if XM.Find({"任务","丝绸之路装备提交"}) then
+                    tap(1089,495)  
+                end            
+                
+                sleep(500)
+                if XM.Find({"任务","丝绸之路结束"}) then
+                    
+                    sleep(1000)
+                    --领取奖励
+                    tap(376,578)
+                    sleep(2000)
+                    --关闭界面
+                    tap(1105,103)
+                    
+                    return TaskOver(list.name)
+                else
+                    Doing(list)
+                end             
+                
+            end
+        else
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.名人轶事={name="名人轶事"}
+function Unit.State.名人轶事(list)--✔    
+    GetTaskingMsg(list)
+    
+    if   进入活动_休闲() then
+        
+        if XM.Find({"任务","名人轶事"},true) then  
+            
+            while true do
+                sleep(1000)
+                if TaskEnter(list) then              
+                    sleep(2000)
+                    tap(1208,30)                
+                    return TaskOver(list.name)      
+                    
+                else 
+                    TapCloseButton()
+                    return list.name                    
+                end
+                
+            end    
+        else
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.师门任务={name="师门任务"}
+function Unit.State.师门任务(list)--✔
+    GetTaskingMsg(list)    
+    if 进入活动_经验()  then
+        
+        if XM.Find({"任务","师门任务"},true) then 
+            
+            local zbColorNum_old=0 --旧坐标色点数
+            local zbColorNum_new=0 --新坐标色点数
+            local timeOut=0--超时时间
+            local timeOutState=false --超时状态
+            
+            while true do
+                sleep(3000)
+                
+                zbColorNum_new = XM.FindNumRet({"界面","坐标色点"})               
+                
+                if 2 < zbColorNum_new and zbColorNum_new < 450 then                        
+                    
+                    --判断坐标是否发生变化
+                    if zbColorNum_old==zbColorNum_new then   
+                        
+                        timeOut=timeOut+3
+                        Debug("卡机判断:"..timeOut.."/30")
+                        if timeOut>=30 then
+                            --超时
+                            timeOutState=true
+                        end
+                    else                               
+                        --左边变动,重置超时时间
+                        zbColorNum_old=zbColorNum_new
+                        timeOut=0
+                        Wait(list,15)
+                    end
+                end
+                
+                if timeOutState then                    
+                    --卡机则从头开始任务
+                    return list.name
+                end
+                
+                
+                --师门结束判断
+                if XM.Find({"任务","师门任务结束"}) then                
+                    sleep(1000)
+                    tap(647,351)
+                    sleep(4000)
+                    tap(647,351)                     
+                    sleep(2000)
+                    return TaskOver(list.name)
+                else
+                    if XM.TimerFirst("师门结束判定",7) then
+                        Doing(list)                        
+                    end
+                end
+                
+            end   
+            
+        else
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.帮派任务={name = "帮派任务",sw = true}
+function Unit.State.帮派任务(list) --✔
+    GetTaskingMsg(list) 
+    sleep(1000)
+    if 进入活动_经验() then
+        
+        if XM.Find({"任务","帮派任务"},true) then
+            TapCloseGoods()
+            Doing(list)
+            sleep(1000)             
+            
+            --任务判定
+            while true do                                       
+                Doing(list)            
+                sleep(2000)
+                --切换循环体的开关(配合Timer使用)
+                if list.sw then
+                    
+                    --正常进入则等待240秒
+                    if TaskEnter(list) then
+                        Wait(list,240)                
+                    end
+                    
+                    list.sw=false
+                    
+                else                  
+                    
+                    ZBTimeOut(list)                    
+                    return list.name
+                end    
+                
+            end             
+            
+        else
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.天下奇闻={name="天下奇闻",sw=true}
+function Unit.State.天下奇闻(list)--✔
+    GetTaskingMsg(list) 
+    if 进入活动_经验() then
+        
+        if XM.Find({"任务","天下奇闻"},true) then  
+            
+            while true do
+                Doing(list)
+                sleep(2000)
+                
+                if list.sw then   
+                    
+                    if TaskEnter(list) then
+                        --选择奖励,开始任务
+                        sleep(2000)
+                        tap(514,278)
+                        sleep(2000)
+                        tap(961,622)    
+                        Doing(list)
+                        
+                        --休息230秒
+                        Wait(list,240)
+                    end    
+                    list.sw=false                    
+                else  
+                    
+                    ZBTimeOut(list)
+                    
+                    return list.name
+                end
+                
+            end    
+        else
+            return TaskOver(list.name)
+        end
+        
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.竞技场={name="竞技场",maxValue=getselectscheckitemindex("竞技场次数")+1}
+function Unit.State.竞技场(list)--✔
+    GetTaskingMsg(list) 
+    if 进入活动_道具() then
+        
+        if XM.Find({"任务","竞技场"},true) then
+            sleep(1000)
+            local nowValue = 0
+            
+            --竞技场入口
+            if TaskEnter(list) then
+                
+                sleep(2000)
+                tap(844,295)    --进入战斗            
+                nowValue=nowValue+1                    
+                Debug(nowValue.."竞技场进行中,剩余"..(list.maxValue-nowValue).."次..")
+                while true do
+                    
+                    --跳出 结算页面
+                    sleep(5000)                    
+                    tap(680,592)
+                    sleep(1000)
+                    tap(680,592)                    
+                    
+                    if XM.Find({"界面","竞技场界面"}) then
+                        sleep(3000)
+                        --满足次数则退出
+                        if nowValue>=list.maxValue then
+                            sleep(2000)
+                            tap(659,490)
+                            sleep(1000)
+                            tap(779,487)         
+                            
+                            return TaskOver(list.name)
+                        end                        
+                        
+                        tap(844,295)  --进入战斗,次数加1
+                        nowValue=nowValue+1
+                    else
+                        Debug(nowValue.."竞技场进行中,剩余"..(list.maxValue-nowValue).."次..")
+                    end
+                end         
+            else
+                TapCloseButton()
+                return list.name
+            end            
+            
+        else
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+Unit.Param.夜袭敌营={name="夜袭敌营"}
+function Unit.State.夜袭敌营(list)--✔
+    
+    return WaitFuBenOver(list)
+end
+
+Unit.Param.五绝令={name="五绝令"}
+function Unit.State.五绝令(list)--✔
+    
+    return WaitFuBenOver(list)
+end
+
+Unit.Param.勇闯绝情谷={name="勇闯绝情谷"}
+function Unit.State.勇闯绝情谷(list)--✔
+    
+    return WaitFuBenOver(list)
+end
+
+Unit.Param.江湖同游={name="江湖同游"}
+function Unit.State.江湖同游(list)--✔
+    GetTaskingMsg(list) 
+    sleep(1000)
+    
+    if 进入活动_休闲() then
+        
+        if XM.Switch(list.name.."组队") then   
+            XM.OpenSwitch("副本组队")
+            --组队
+            if OrganizeTeam(list) then                
+                --移除3个队友
+                RemoveTeammate(3)
+                sleep(1000)
+                return list.name
+            else    
+                return TaskOver(list.name)
+            end            
+        end
+        
+        if XM.Find({"任务","江湖同游"},true) then         
+            
+            --江湖同游入口
+            if TaskEnter(list) then
+                
+                Doing(list)                
+                
+                Wait(list,100)
+                
+                --等待结束
+                ZBTimeOut(list)
+                
+                return list.name
+                
+            else
+                TapCloseButton()
+                return list.name
+            end                        
+        else
+            --退出队伍
+            ExitTeam()
+            return TaskOver(list.name)
+        end
+    else
+        Debug("进入[活动]页面失败...进行异常处理...")
+        ErrorAction()
+    end
+    return list.name
+end
+
+
+Unit.Param.领取每日活动奖励={name="领取每日活动奖励"}
+function Unit.State.领取每日活动奖励(list)--✔
+    Doing(list)  
+    TapCloseButton()
+    sleep(2000)
+    
+    if  GoActivity_All() then
+        
+        sleep(2000)
+        
+        local xyReward={
+        {518,589},
+        {669,592},
+        {818,588},
+        {975,589},
+        {1116,590},
+        }       
+        
+        for i=1,#xyReward,1 do    
+            Debug("领取第"..i.."个奖励..")
+            GetEverydayActivityReward(xyReward[i][1],xyReward[i][2]) --1 
+        end   
+    else
+        Debug("进入[活动]页面失败...")
+        ErrorAction()
+    end
+    return TaskOver(list.name)
+    
+end
+
+Unit.Param.爆刷姜小虎奖牌={name="爆刷姜小虎奖牌"}
+function Unit.State.爆刷姜小虎奖牌(list) --初版. 已不再更新. 迁移到了 按键精灵平台
+    
+    if XM.Find({"界面","功能展开箭头"}) or XM.Find({"任务","修行多倍经验开关"})  then
+        EnterPractice() 
+    else
+        Debug("姜小虎任务启动失败\n请在城镇 或者修行任务窗口 启动..10秒后重新启动任务")
+        sleep(10000)
+        return list.name
+    end    
+    
+    --无限循环姜小虎任务,出现异常 返回false
+    if BattleTiger() then
+        
+    else
+        --姜小虎 出现异常. 退出任务..        
+        Debug("姜小虎任务异常.请将日志发给作者.",true)
+        return TaskOver(list.name.." \n【出现异常..请将日志发给作者..】\n【当角色处在城镇中】\n【证明 安全系统 成功停止了姜小虎任务】\n【避免了多倍点数的损失】")
+    end
+    
+    return list.name
+end

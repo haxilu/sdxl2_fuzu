@@ -1,0 +1,26 @@
+{
+    "checkBox": [
+       {
+            "checkBoxId": "竞技场",
+            "isCheck":"false",
+            "event": [
+                {
+                    "Id": "竞技场次数",
+                    "status": 0
+                }
+        
+            ]
+        },
+         {
+            "checkBoxId": "竞技场",
+            "isCheck":"true",
+            "event": [
+                  {
+                    "Id": "竞技场次数",
+                    "status": 1
+                }
+        
+            ]
+        }
+        ]
+}
