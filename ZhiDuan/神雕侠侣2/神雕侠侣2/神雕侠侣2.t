@@ -18,7 +18,7 @@ TaskOverTable={}
 --调度器
 Unit.Param.TheLegendOfCondorHero={name="TheLegendOfCondorHero"}
 function Unit.State.TheLegendOfCondorHero(list) 
-
+    
     if XM.Switch("初始化") then
         
         --指端广告入口
@@ -559,6 +559,7 @@ function Unit.State.江湖同游(list)--✔
                 return list.name
                 
             else
+                ZBTimeOut(list)
                 TapCloseButton()
                 return list.name
             end                        
