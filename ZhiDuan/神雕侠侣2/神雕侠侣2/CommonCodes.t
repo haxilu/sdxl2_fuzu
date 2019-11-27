@@ -154,7 +154,6 @@ function Debug(str,isWriteFile)
     end 
 end
 
-
 --写入txt
 function WriteTxtFile(content)    
     
@@ -207,7 +206,6 @@ function Wait(list,num)
         sleep(10000)        
     end
 end
-
 
 --[[
 

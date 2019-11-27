@@ -17,7 +17,7 @@ TaskOverTable={}
 
 --调度器
 Unit.Param.TheLegendOfCondorHero={name="TheLegendOfCondorHero"}
-function Unit.State.TheLegendOfCondorHero(list) 
+function Unit.State.TheLegendOfCondorHero(list)
     
     if XM.Switch("初始化") then
         
@@ -604,27 +604,4 @@ function Unit.State.领取每日活动奖励(list)--✔
     end
     return TaskOver(list.name)
     
-end
-
-Unit.Param.爆刷姜小虎奖牌={name="爆刷姜小虎奖牌"}
-function Unit.State.爆刷姜小虎奖牌(list) --初版. 已不再更新. 迁移到了 按键精灵平台
-    
-    if XM.Find({"界面","功能展开箭头"}) or XM.Find({"任务","修行多倍经验开关"})  then
-        EnterPractice() 
-    else
-        Debug("姜小虎任务启动失败\n请在城镇 或者修行任务窗口 启动..10秒后重新启动任务")
-        sleep(10000)
-        return list.name
-    end    
-    
-    --无限循环姜小虎任务,出现异常 返回false
-    if BattleTiger() then
-        
-    else
-        --姜小虎 出现异常. 退出任务..        
-        Debug("姜小虎任务异常.请将日志发给作者.",true)
-        return TaskOver(list.name.." \n【出现异常..请将日志发给作者..】\n【当角色处在城镇中】\n【证明 安全系统 成功停止了姜小虎任务】\n【避免了多倍点数的损失】")
-    end
-    
-    return list.name
 end

@@ -22,7 +22,7 @@ CheckboxTable={
 ,"江湖同游"
 
 ,"领取每日活动奖励"
-,"爆刷姜小虎奖牌"
+--,"爆刷姜小虎奖牌"
 }
 
 local btnId="allChoice" 
@@ -62,25 +62,26 @@ function ChoiceBox(isChoice)
         
         if checkgetselected(v)~=isChoice then
             
-            if v == "爆刷姜小虎奖牌" then
+            if v == "烽火令" then
                 checksetselected(v,false)
             else
                 checksetselected(v,isChoice)
                 sleep(100)
             end
+            
         end
         
     end
 end
 
 function Github()   
-
-   cmdroot("am start -a android.intent.action.VIEW -d https://github.com/xxxxue/sdxl2_fuzu")
+    
+    cmdroot("am start -a android.intent.action.VIEW -d https://github.com/xxxxue/sdxl2_fuzu")
     
 end
 
 function QQGroup()
     setclipboard("780091710")  
-
+    
     messagebox("Q群复制成功,请粘贴到QQ中查找.")
 end
