@@ -50,9 +50,7 @@ end
 
 
 
-function XM.Find(...)
-    
-    XM.KeepScreen()
+function XM.Find(...)	
     local Arr = {}
     local Rnd ,Str,bool= 5,"",false
     if ... == nil then
@@ -60,80 +58,61 @@ function XM.Find(...)
     end
     Arr = {...}
     local iRet, sRet = pcall(function()
-    
-    --分解表格中的参数
-    for i = 1,#Arr do
-        
-        if type(Arr[i]) == "string" or type(Arr[i]) == "table" then
-            Str = Arr[i]
-        elseif type(Arr[i]) == "number" then
-            Rnd = Arr[i]
-        elseif type(Arr[i]) == "boolean" then
-            bool = Arr[i]
-        end
-    end
-    
-    
-    local colorList = GetTable(Str)
-    if colorList ~= nil then
-        
-        --表格类型的色点
-        if type(colorList[1]) == "table" then
-            for i = 1, #colorList do 
-                local x,y,value = CurrencyFindColor(colorList[i])
-                if(value > -1) then
-                    if(bool == true) then
-                        RndTap(x, y, Rnd)
-                    end
-                    XMLogEx("XM.Find:"..colorList[i][1].."-"..x.."-"..y)
-                    XM_TimingColorArr = {}
-                    return true
+		for i = 1,#Arr do
+			if type(Arr[i]) == "string" or type(Arr[i]) == "table" then
+				Str = Arr[i]
+			elseif type(Arr[i]) == "number" then
+				Rnd = Arr[i]
+			elseif type(Arr[i]) == "boolean" then
+				bool = Arr[i]
+			end
+		end
+		local colorList = GetTable(Str)
+		if colorList ~= nil then
+			if type(colorList[1]) == "table" then
+				for i = 1, #colorList do 
+					local x,y,value = CurrencyFindColor(colorList[i])
+					if(value > -1) then
+						if(bool == true) then
+							RndTap(x, y, Rnd)
+						end
+						XMLogEx("XM.Find:"..colorList[i][1].."-"..x.."-"..y)
+						XM_TimingColorArr = {}
+						return true
+                    else
+                        XMLogEx("XM.Find:"..colorList[i][1].."  --->[未找到]")
+					end
+				end
+				
+			else
+				local x,y,value = CurrencyFindColor(colorList)
+				if(value > -1) then
+					if(bool == true) then
+						RndTap(x, y, Rnd)
+					end
+					XMLogEx("XM.Find:"..colorList[1].."-"..x.."-"..y)
+					XM_TimingColorArr = {}
+					return true
                 else
-                    XMLogEx("XM.Find:"..colorList[i][1].."-"..x.."-"..y .. "  ---------->[未找到]")
-                end
-            end
-            
-        else
-            
-            --单个类型的色点
-            local x,y,value = CurrencyFindColor(colorList)
-            if(value > -1) then
-                if(bool == true) then
-                    RndTap(x, y, Rnd)
-                end
-                
-                XMLogEx("XM.Find:"..colorList[1].."-"..x.."-"..y)
-                XM_TimingColorArr = {}
-                
-                return true
-            else
-                XMLogEx("XM.Find:"..colorList[1].."-"..x.."-"..y .. "  ---------->[未找到]")
-            end
-        end
-        
-        
-    else
-        
-        --参数传入错误
-        if type(Str) == "table" and #Str == 2 then
-            XM.Print("XM.Find:色点名\"{"..Str[1].."-"..Str[2].."}\"不存在")
-        elseif type(Str) == "string" then
-            XM.Print("XM.Find:色点名\""..Str.."\"不存在")
-        else
-            XM.Print("XM.Find:以下色点名不存在")
-            XM.Print(Str)
-        end
-        
-    end
-    
-    return false    
+                    XMLogEx("XM.Find:"..colorList[1].."  --->[未找到]")
+				end
+			end
+		else
+			if type(Str) == "table" and #Str == 2 then
+				XM.Print("XM.Find:色点名\"{"..Str[1].."-"..Str[2].."}\"不存在")
+			elseif type(Str) == "string" then
+				XM.Print("XM.Find:色点名\""..Str.."\"不存在")
+			else
+				XM.Print("XM.Find:以下色点名不存在")
+				XM.Print(Str)
+			end
+		end
+		return false
     end)
-    
-    --异常处理
     if iRet == true then
         return sRet
     end
-    XM.Print("XM.Find:调用出错")
+	XM.Print("XM.Find:调用出错")
     return false
 end
 
@@ -143,74 +122,74 @@ end
 function XM.OcrFont(Str)
     local colorList = GetTable(Str)
     if colorList ~= nil then
-        local sim = 0.8
+		local sim = 0.8
         if type(colorList[1]) == "table" then
-            XM.Print("OcrFont:参数不能为table")
+			XM.Print("OcrFont:参数不能为table")
         else
-            if colorList[2] <= 1 then
-                sim = colorList[2]
-                usedict(colorList[8])
-                return ocr(colorList[3],colorList[4],colorList[5],colorList[6],colorList[7],sim)
-            else
-                usedict(colorList[7])
-                return ocr(colorList[2],colorList[3],colorList[4],colorList[5],colorList[6],sim)
-            end	
+			if colorList[2] <= 1 then
+				sim = colorList[2]
+				usedict(colorList[8])
+				return ocr(colorList[3],colorList[4],colorList[5],colorList[6],colorList[7],sim)
+			else
+				usedict(colorList[7])
+				return ocr(colorList[2],colorList[3],colorList[4],colorList[5],colorList[6],sim)
+			end	
             
         end
-    end
-    return nil
+	end
+	return nil
 end
 
 
 function XM.FindDev(...)		--偏移点击
-    local X,Y,Str = 0,0,Str
-    local B = false
-    if ... == nil then
+	local X,Y,Str = 0,0,Str
+	local B = false
+	if ... == nil then
         return false
     end
     Arr = {...}
-    for i = 1,#Arr do
-        if type(Arr[i]) == "string" or type(Arr[i]) == "table" then
-            Str = Arr[i]
-        elseif type(Arr[i]) == "number" then
-            if B == false then
-                X = Arr[i]
-                B = true
-            else
-                Y = Arr[i]
-            end
-        end
-    end
+	for i = 1,#Arr do
+		if type(Arr[i]) == "string" or type(Arr[i]) == "table" then
+			Str = Arr[i]
+		elseif type(Arr[i]) == "number" then
+			if B == false then
+				X = Arr[i]
+				B = true
+			else
+				Y = Arr[i]
+			end
+		end
+	end
     local colorList = GetTable(Str)
     if colorList ~= nil then
         if type(colorList[1]) == "table" then
             for i = 1, #colorList do 
-                local x,y,value = CurrencyFindColor(colorList[i])
-                if(value ~= -1) then
-                    XMLogEx("XM.FindDev:"..colorList[i][1].."-"..x .. "-" .. y )
-                    RndTap(x+X,y+Y,1)
-                    XM_TimingColorArr = {}
-                    return true
-                end
+				local x,y,value = CurrencyFindColor(colorList[i])
+				if(value ~= -1) then
+					XMLogEx("XM.FindDev:"..colorList[i][1].."-"..x .. "-" .. y )
+					RndTap(x+X,y+Y,1)
+					XM_TimingColorArr = {}
+					return true
+				end
             end
         else
-            local x,y,value = CurrencyFindColor(colorList)
-            if(value ~= -1) then
-                XMLogEx("XM.FindDev:"..colorList[1].."-"..x .. "-" .. y )
-                RndTap(x+X,y+Y,1)
-                XM_TimingColorArr = {}
-                return true
-            end
+			local x,y,value = CurrencyFindColor(colorList)
+			if(value ~= -1) then
+				XMLogEx("XM.FindDev:"..colorList[1].."-"..x .. "-" .. y )
+				RndTap(x+X,y+Y,1)
+				XM_TimingColorArr = {}
+				return true
+			end
         end	
-    else
-        if type(Str) == "table" and #Str == 2 then
-            XM.Print("XM.FindDev:色点名\"{"..Str[1].."-"..Str[2].."}\"不存在")
-        elseif type(Str) == "string" then
-            XM.Print("XM.FindDev:色点名\""..Str.."\"不存在")
-        else
-            XM.Print("XM.FindDev:以下色点名不存在")
-            XM.Print(Str)
-        end
+	else
+		if type(Str) == "table" and #Str == 2 then
+			XM.Print("XM.FindDev:色点名\"{"..Str[1].."-"..Str[2].."}\"不存在")
+		elseif type(Str) == "string" then
+			XM.Print("XM.FindDev:色点名\""..Str.."\"不存在")
+		else
+			XM.Print("XM.FindDev:以下色点名不存在")
+			XM.Print(Str)
+		end
     end
     return false
 end
@@ -220,13 +199,13 @@ end
 
 XM_LogSwitch = false
 function XM.XMLogExOpen()
-    XM_LogSwitch = true
+	XM_LogSwitch = true
 end
 
 function XMLogEx(Str) 
-    if XM_LogSwitch == true then
-        XM.Print(Str)
-    end
+	if XM_LogSwitch == true then
+		XM.Print(Str)
+	end
 end
 
 function XM.FindAllPosition(Str, diff)--返回所有找到的位置  diff:坐标距离
@@ -286,21 +265,18 @@ end
 
 
 function XM.FindNumRet(Str) 	--返回区域数量
-    XM.KeepScreen()
-    local colorList = GetTable(Str)
+	local colorList = GetTable(Str)
     if colorList ~= nil then
-        if type(colorList[1]) == "table"  then
-            XM.Print("XM.FindNumRet:色点名\""..colorList[1][1].."\"此函数不支持二维数组传参")
-        else
-            local value  = CurrencyFindColor(colorList,2)
-            XM.Print("XM.FindNumRet:色点名\""..colorList[1].."\"数量: "..value)
-            
-            return value
-        end
-    else
-        XM.Print("FindNumRet:色点名\""..Str.."\"不存在")
-    end
-    return nil
+		if type(colorList[1]) == "table"  then
+			XM.Print("XM.FindNumRet:色点名\""..colorList[1][1].."\"此函数不支持二维数组传参")
+		else
+			local value  = CurrencyFindColor(colorList,2)
+			return value
+		end
+	else
+		XM.Print("FindNumRet:色点名\""..Str.."\"不存在")
+	end
+	return nil
 end
 
 function XM.FindNum(Str,bool)	--获取区域指定数量
@@ -309,45 +285,45 @@ function XM.FindNum(Str,bool)	--获取区域指定数量
     if colorList ~= nil then
         if type(colorList[1]) == "table" then
             for i = 1,#colorList do
-                if FindAmount(colorList[i],bool) then
-                    return true
-                end
-            end
+				if FindAmount(colorList[i],bool) then
+					return true
+				end
+			end
         else
             if FindAmount(colorList,bool) then
                 return true
             end
         end
-        return false
+		return false
     end
-    XM.Print("FindNum:色点名\""..Str.."\"不存在")
+	XM.Print("FindNum:色点名\""..Str.."\"不存在")
     return false
 end
 
 function FindAmount(list,bool)
-    local x1,y1,x2,y2,color ,sim = 0,0,2000,2000,"",0.8
-    if #list == 3 then
-        color = list[2]	
-    elseif #list == 4 then
-        sim = list[2]
-        color = list[3]	
-    elseif #list == 7 then
-        x1,y1,x2,y2 = list[2],list[3],list[4],list[5]
-        color = list[6]	
-    elseif #list == 8 then
-        if list[2] < 1 then	--兼容以往的写法,防止作者更新插件后无法正常使用
-            sim = list[2]
-            x1,y1,x2,y2 = list[3],list[4],list[5],list[6]
-            color = list[7]	
-        else
-            x1,y1,x2,y2 = list[2],list[3],list[4],list[5]
-            color = list[6]	
-            sim = list[7]
-        end
-    else
-        XM.Print("XM.FindNum:色点名\""..list[1].."\",请传入正确的参数")
-    end
-    
+	local x1,y1,x2,y2,color ,sim = 0,0,2000,2000,"",0.8
+	if #list == 3 then
+		color = list[2]	
+	elseif #list == 4 then
+		sim = list[2]
+		color = list[3]	
+	elseif #list == 7 then
+		x1,y1,x2,y2 = list[2],list[3],list[4],list[5]
+		color = list[6]	
+	elseif #list == 8 then
+		if list[2] < 1 then	--兼容以往的写法,防止作者更新插件后无法正常使用
+			sim = list[2]
+			x1,y1,x2,y2 = list[3],list[4],list[5],list[6]
+			color = list[7]	
+		else
+			x1,y1,x2,y2 = list[2],list[3],list[4],list[5]
+			color = list[6]	
+			sim = list[7]
+		end
+	else
+		XM.Print("XM.FindNum:色点名\""..list[1].."\",请传入正确的参数")
+	end
+	
     local num = getcolornum(x1,y1,x2,y2,color,sim)
     if num >= list[#list] then
         if bool == true then
@@ -395,7 +371,7 @@ function XM.ColorCardScreen(id,x,y,count)	--颜色卡屏判断
         XM_ColorCardScreenCount[id][1] = 0
         XM_ColorCardScreenCount[id][2] = getcolor(x,y,0)
     else
-        local value = getcolor(x,y,0)
+		local value = getcolor(x,y,0)
         if XM_ColorCardScreenCount[id][1]  >= count  then	--颜色超过count次一样,表明卡死,返回true
             XM_ColorCardScreenCount[id][1] = 0
             return true
@@ -479,19 +455,19 @@ function XM.ReturnDate(t)		--返回天时分
     if t == 0 then
         XM.Print("XM.ReturnDate参数错误,请传入number值")
     else
-        local str = ""
-        local list = {}
-        local sList = {"天", "小时", "分", "秒"}
-        list[1] = math.floor((t / 60 / 60) / 24)--天 
-        list[2] = math.floor((t / 60 / 60) % 24)--时
-        list[3] = math.floor((t / 60) % 60)--分
-        list[4] = math.floor(t % 60)--秒
-        for i = 1, #list do
-            if list[i] > 0 then
-                str = str .. list[i]..sList[i]
-            end
-        end
-        return str
+		local str = ""
+		local list = {}
+		local sList = {"天", "小时", "分", "秒"}
+		list[1] = math.floor((t / 60 / 60) / 24)--天 
+		list[2] = math.floor((t / 60 / 60) % 24)--时
+		list[3] = math.floor((t / 60) % 60)--分
+		list[4] = math.floor(t % 60)--秒
+		for i = 1, #list do
+			if list[i] > 0 then
+				str = str .. list[i]..sList[i]
+			end
+		end
+		return str
     end
 end
 function XM.DateRet(t)
@@ -546,40 +522,40 @@ function XM.Print(...)--调试输出，可打印表
         tab = {...}
         for i = 1,#tab do
             if type(tab[i])  == "table" then
-                local value = PrintTable(tab[i],1)
-                str = str .. value
-            else
-                str = str .. tostring(tab[i])
-                if i ~= #tab then
-                    str = str
-                end
+               local value = PrintTable(tab[i],1)
+               str = str .. value
+			else
+				str = str .. tostring(tab[i])
+				if i ~= #tab then
+					str = str
+				end
             end
-            
-        end
+				
+		end
     end
     
     level = level or 1
     if type(str) == "table" then	
         local indent = ""
-        for i = 1, level do
-            indent = indent.."  "
-        end
-        if XM_Key ~= "" then
-            XM.Print(tostring(indent).."["..tostring(XM_Key).."]".." ".."=".." ".."{")
-        else
-            XM.Print(tostring(indent) .. "{")
-        end
-        XM_Key = ""
-        for k, v in pairs(str) do
-            if type(v) == "table" then
-                XM_Key = k
-                XM.Print(v, level + 1)
-            else
-                local content = string.format("%s[%s] = %s", tostring(indent) .. "  ", tostring(k), tostring(v))
-                XM.Print(tostring(content))
-            end
-        end
-        XM.Print(tostring(indent) .. "}")
+		for i = 1, level do
+			indent = indent.."  "
+		end
+		if XM_Key ~= "" then
+			XM.Print(tostring(indent).."["..tostring(XM_Key).."]".." ".."=".." ".."{")
+		else
+			XM.Print(tostring(indent) .. "{")
+		end
+		XM_Key = ""
+		for k, v in pairs(str) do
+			if type(v) == "table" then
+				XM_Key = k
+				XM.Print(v, level + 1)
+			else
+				local content = string.format("%s[%s] = %s", tostring(indent) .. "  ", tostring(k), tostring(v))
+				XM.Print(tostring(content))
+			end
+		end
+		XM.Print(tostring(indent) .. "}")
     else
         traceprint(tostring(str))
         logex(tostring(str))
@@ -590,50 +566,50 @@ end
 function PrintTable(str,level)
     local str2 = ""
     local indent = ""
-    for i = 1, level do
-        indent = indent.." "
-    end
-    if XM_Key ~= "" then
-        str2 = str2 .. (tostring(indent).."["..tostring(XM_Key).."]".."".."=".." ".."{")
-    else
-        str2 = str2 ..(tostring(indent) .. "{")
-    end
-    XM_Key = ""
-    for k, v in pairs(str) do
-        if type(v) == "table" then
-            XM_Key = k
-            str2 = str2 .. PrintTable(v, level + 1)
-        else
-            local content = string.format("%s[%s] = %s,", tostring(indent) .. "", tostring(k), tostring(v))
-            str2 = str2 ..(tostring(content))
-        end
-    end
-    str2 = str2 ..(tostring(indent) .. "}")
+	for i = 1, level do
+		indent = indent.." "
+	end
+	if XM_Key ~= "" then
+		str2 = str2 .. (tostring(indent).."["..tostring(XM_Key).."]".."".."=".." ".."{")
+	else
+		str2 = str2 ..(tostring(indent) .. "{")
+	end
+	XM_Key = ""
+	for k, v in pairs(str) do
+		if type(v) == "table" then
+			XM_Key = k
+			str2 = str2 .. PrintTable(v, level + 1)
+		else
+			local content = string.format("%s[%s] = %s,", tostring(indent) .. "", tostring(k), tostring(v))
+			str2 = str2 ..(tostring(content))
+		end
+	end
+	str2 = str2 ..(tostring(indent) .. "}")
     return str2
 end
 
 
 function XM.FindRet(Str)
     local colorList = GetTable(Str)
-    local list = {-1,-1,-1}
+	local list = {-1,-1,-1}
     if colorList ~= nil then
         if type(colorList[1]) == "table" then
-            for i =1 ,#colorList do
-                list[1],list[2],list[3] = CurrencyFindColor(colorList[i])
-                if list[1] > -1 then
-                    list[3] = colorList[i][1]
-                    XMLogEx("XM.FindRet:"..list[1].."-"..list[2].."-"..list[3])
-                    return list
-                end
-            end
-            return list 
+			for i =1 ,#colorList do
+				list[1],list[2],list[3] = CurrencyFindColor(colorList[i])
+				if list[1] > -1 then
+					list[3] = colorList[i][1]
+					XMLogEx("XM.FindRet:"..list[1].."-"..list[2].."-"..list[3])
+					return list
+				end
+			end
+			return list 
         else
-            list[1],list[2],list[3] = CurrencyFindColor(colorList)
-            if list[1] > -1 then
-                list[3] = colorList[1]
-                XMLogEx("XM.FindRet:"..list[1].."-"..list[2].."-"..list[3])
-            end
-            return list
+			list[1],list[2],list[3] = CurrencyFindColor(colorList)
+			if list[1] > -1 then
+				list[3] = colorList[1]
+				XMLogEx("XM.FindRet:"..list[1].."-"..list[2].."-"..list[3])
+			end
+			return list
         end
     else
         XM.Print("FindRet参数错误")
@@ -656,7 +632,7 @@ function XM.RndTap(X, Y, R)--随机点击 X:x坐标 Y:y坐标 R（可选）:随�
 end
 
 function XM.LongTouch(X, Y, t)--随机点击 X:x坐标 Y:y坐标 t:按下时间
-    t = t or 2000
+	t = t or 2000
     X,Y = ColorChange(X,Y)
     touchdown(X,Y,0)
     Sleep(t)
@@ -675,13 +651,15 @@ function RndTap(X, Y, R)--随机点击 X:x坐标 Y:y坐标 R（可选）:随机�
     XM.KeepScreen(0)
 end
 
+
+
+
+
 function XM.Swipe(x1,y1,x2,y2,id,R) --滑动
     R = R or 5
     local r 
     if id == 3 then 
-        r =  R 
-    elseif id==5 then --行走 滑动
-        r = rnd(R-1000, R+1000)
+        r = R
     else
         r = rnd(-1*R, R)
     end
@@ -712,28 +690,22 @@ function XM.Swipe(x1,y1,x2,y2,id,R) --滑动
         Sleep(r)
         touchmove(x2, y2, 0)
         touchup(0)
-    elseif id == 5 then	--滑动长按
-        touchdown(x1, y1, 0)
-        sleep(500)
-        touchmove(x2, y2, 0)
-        Sleep(r)
-        touchup(0)
-    elseif id == 4 then	--匀速滑动
-        local diff1 = x1-x2
-        local diff2  = y1-y2
-        R = R or 400
-        if R < 400 then
-            R = 400 
-        end
-        local time = (R-100)/300
-        local count1 = diff1/time
-        local count2 = diff2/time
-        singletouchdown(x1,y1)
-        for i = 1,time do
-            singletouchmove(x1-(count1*(i-1)),y1-(count2*(i-1)),x1-(count1*(i)),y1-(count2*(i)))
-        end
-        sleep(100)
-        singletouchup(x2,y2)
+	elseif id == 4 then	--匀速滑动
+		local diff1 = x1-x2
+		local diff2  = y1-y2
+		R = R or 400
+		if R < 400 then
+		   R = 400 
+		end
+		local time = (R-100)/300
+		local count1 = diff1/time
+		local count2 = diff2/time
+		singletouchdown(x1,y1)
+		for i = 1,time do
+			singletouchmove(x1-(count1*(i-1)),y1-(count2*(i-1)),x1-(count1*(i)),y1-(count2*(i)))
+		end
+		sleep(100)
+		singletouchup(x2,y2)
     end
 end
 
@@ -846,22 +818,22 @@ function XM.GetTap()	--获取点击位置
         value=file:read("*l")
         if value~=nil then
             if a ~= nil and b ~= nil then
-                if mode == 1 then
-                    retVlaue[1] = b
-                    retVlaue[2]= (ScreenY-a)
-                else
-                    retVlaue[1]= math.floor(a*ScreenX/mList[1])
-                    retVlaue[2]= math.floor(b*ScreenY/mList[2])
-                end
-                if retVlaue[1] ~= nil and retVlaue[2] ~= nil then
-                    break
-                end
+				if mode == 1 then
+					retVlaue[1] = b
+					retVlaue[2]= (ScreenY-a)
+				else
+					retVlaue[1]= math.floor(a*ScreenX/mList[1])
+					retVlaue[2]= math.floor(b*ScreenY/mList[2])
+				end
+				if retVlaue[1] ~= nil and retVlaue[2] ~= nil then
+					break
+				end
             else
                 if value:find("ABS_MT_POSITION_X")~=nil then
-                    a = tonumber(value:sub(54,62),16)
-                elseif value:find("ABS_MT_POSITION_Y")~=nil then
-                    b = tonumber(value:sub(54,62),16)
-                end
+					a = tonumber(value:sub(54,62),16)
+				elseif value:find("ABS_MT_POSITION_Y")~=nil then
+					b = tonumber(value:sub(54,62),16)
+				end
             end
         end
     end
@@ -994,17 +966,17 @@ end
 --写文件[path:路径, content:写入内容 ,isdel:是否清除内容][返回true, 失败nil]
 function XM.WriteFile(path,content, isCle)
     local iRet, sRet = pcall(function()
-    content = content or ""
-    local mode = ""
-    if isCle then
-        mode = "w"
-    else
-        mode = "a"
-    end
-    local f = io.open(path, mode)
-    local ret = f:write(content)
-    f:close()
-    return ret
+		content = content or ""
+		local mode = ""
+		if isCle then
+			mode = "w"
+        else
+            mode = "a"
+		end
+		local f = io.open(path, mode)
+		local ret = f:write(content)
+		f:close()
+		return ret
     end)
     if iRet == true then
         return sRet
@@ -1023,152 +995,152 @@ function CurrencyFindColor(Array,mode)
     -- local iRet, sRet = pcall(
     -- function()
     TimerCloseMsg()
-    
-    local id = 0
-    if type(Array[#Array]) == "string"  then 		
-        if  type(Array[#Array-1]) == "string" and Array[#Array-1] ~= Array[1] then 	--findmulticolor: Array[#Array-1] ~= Array[1] 
-            id = 1
-        else
-            id = 2
-        end
-        -- elseif type(Array[#Array]) == "number" then	--
-        -- id = 1
-    else
-        XM.Print("色点名:"..Array[1]..",请填写正确的结尾参数")
-        return false
-    end
-    if id == 1 then	--findmulticolor
-        if #Array == 3 then
-            if type(Array[2]) == "string" then 
-                color = Array[2] 
-            end
-            if type(Array[3]) == "string" then
-                OffsetPos = Array[3] 
-            end
-        elseif #Array == 4 then
-            if type(Array[2]) == "number" then 
-                sim = Array[2] 
-            end
-            if type(Array[3]) == "string" then 
-                color = Array[3] 
-            end
-            if type(Array[4]) == "string" then
-                OffsetPos = Array[4] 
-            end
-        elseif #Array == 7 then 
-            if type(Array[2]) == "number" then
-                x1 = Array[2]
-            end
-            if type(Array[3]) == "number" then
-                y1 = Array[3]
-            end
-            if type(Array[4]) == "number" then
-                x2 = Array[4]
-            end
-            if type(Array[5]) == "number" then
-                y2 = Array[5]
-            end
-            if type(Array[6]) == "string" then
-                color = Array[6]
-            end
-            if type(Array[7]) == "string" then
-                OffsetPos = Array[7]
-            end
-        elseif #Array == 8 then 
-            if type(Array[2]) == "number" then
-                sim = Array[2]
-            end
-            if type(Array[3]) == "number" then
-                x1 = Array[3]
-            end
-            if type(Array[4]) == "number" then
-                y1 = Array[4]
-            end
-            if type(Array[5]) == "number" then
-                x2 = Array[5]
-            end
-            if type(Array[6]) == "number" then
-                y2 = Array[6]
-            end
-            if type(Array[7]) == "string" then
-                color = Array[7]
-            end
-            if type(Array[8]) == "string" then
-                OffsetPos = Array[8]
-            end
-        else
-            XM.Print("色点名:"..Array[1]..",请填写正确的结尾参数")
-            return false
-        end
-        x1,y1, x2,y2 = ColorChange(x1,y1, x2,y2)
-        OffsetPos = ColorChange(OffsetPos)	
-    elseif id == 2 then
-        if #Array == 2 then
-            if type(Array[2]) == "string" then 
-                color = Array[2] 
-            end
-        elseif #Array == 3 then
-            if type(Array[2]) == "number" then 
-                sim = Array[2] 
-            end
-            if type(Array[3]) == "string" then 
-                color = Array[3] 
-            end
-        elseif #Array == 6 then 
-            if type(Array[2]) == "number" then
-                x1 = Array[2]
-            end
-            if type(Array[3]) == "number" then
-                y1 = Array[3]
-            end
-            if type(Array[4]) == "number" then
-                x2 = Array[4]
-            end
-            if type(Array[5]) == "number" then
-                y2 = Array[5]
-            end
-            if type(Array[6]) == "string" then
-                color = Array[6]
-            end
-        elseif #Array == 7 then 
-            if type(Array[2]) == "number" then
-                sim = Array[2]
-            end
-            if type(Array[3]) == "number" then
-                x1 = Array[3]
-            end
-            if type(Array[4]) == "number" then
-                y1 = Array[4]
-            end
-            if type(Array[5]) == "number" then
-                x2 = Array[5]
-            end
-            if type(Array[6]) == "number" then
-                y2 = Array[6]
-            end
-            if type(Array[7]) == "string" then
-                color = Array[7]
-            end
-        else
-            XM.Print("色点名:"..Array[1]..",请填写正确的结尾参数")
-            return false
-        end
-        x1,y1, x2,y2 = ColorChange(x1,y1, x2,y2)
-    end
+	
+	local id = 0
+	if type(Array[#Array]) == "string"  then 		
+		if  type(Array[#Array-1]) == "string" and Array[#Array-1] ~= Array[1] then 	--findmulticolor: Array[#Array-1] ~= Array[1] 
+			id = 1
+		else
+			id = 2
+		end
+	-- elseif type(Array[#Array]) == "number" then	--
+		-- id = 1
+	else
+		XM.Print("色点名:"..Array[1]..",请填写正确的结尾参数")
+		return false
+	end
+	if id == 1 then	--findmulticolor
+		if #Array == 3 then
+			if type(Array[2]) == "string" then 
+				color = Array[2] 
+			end
+			if type(Array[3]) == "string" then
+				OffsetPos = Array[3] 
+			end
+		elseif #Array == 4 then
+			if type(Array[2]) == "number" then 
+				sim = Array[2] 
+			end
+			if type(Array[3]) == "string" then 
+				color = Array[3] 
+			end
+			if type(Array[4]) == "string" then
+				OffsetPos = Array[4] 
+			end
+		elseif #Array == 7 then 
+			if type(Array[2]) == "number" then
+				x1 = Array[2]
+			end
+			if type(Array[3]) == "number" then
+				y1 = Array[3]
+			end
+			if type(Array[4]) == "number" then
+				x2 = Array[4]
+			end
+			if type(Array[5]) == "number" then
+				y2 = Array[5]
+			end
+			if type(Array[6]) == "string" then
+				color = Array[6]
+			end
+			if type(Array[7]) == "string" then
+				OffsetPos = Array[7]
+			end
+		elseif #Array == 8 then 
+			if type(Array[2]) == "number" then
+				sim = Array[2]
+			end
+			if type(Array[3]) == "number" then
+				x1 = Array[3]
+			end
+			if type(Array[4]) == "number" then
+				y1 = Array[4]
+			end
+			if type(Array[5]) == "number" then
+				x2 = Array[5]
+			end
+			if type(Array[6]) == "number" then
+				y2 = Array[6]
+			end
+			if type(Array[7]) == "string" then
+				color = Array[7]
+			end
+			if type(Array[8]) == "string" then
+				OffsetPos = Array[8]
+			end
+		else
+			XM.Print("色点名:"..Array[1]..",请填写正确的结尾参数")
+			return false
+		end
+		x1,y1, x2,y2 = ColorChange(x1,y1, x2,y2)
+		OffsetPos = ColorChange(OffsetPos)	
+	elseif id == 2 then
+		if #Array == 2 then
+			if type(Array[2]) == "string" then 
+				color = Array[2] 
+			end
+		elseif #Array == 3 then
+			if type(Array[2]) == "number" then 
+				sim = Array[2] 
+			end
+			if type(Array[3]) == "string" then 
+				color = Array[3] 
+			end
+		elseif #Array == 6 then 
+			if type(Array[2]) == "number" then
+				x1 = Array[2]
+			end
+			if type(Array[3]) == "number" then
+				y1 = Array[3]
+			end
+			if type(Array[4]) == "number" then
+				x2 = Array[4]
+			end
+			if type(Array[5]) == "number" then
+				y2 = Array[5]
+			end
+			if type(Array[6]) == "string" then
+				color = Array[6]
+			end
+		elseif #Array == 7 then 
+			if type(Array[2]) == "number" then
+				sim = Array[2]
+			end
+			if type(Array[3]) == "number" then
+				x1 = Array[3]
+			end
+			if type(Array[4]) == "number" then
+				y1 = Array[4]
+			end
+			if type(Array[5]) == "number" then
+				x2 = Array[5]
+			end
+			if type(Array[6]) == "number" then
+				y2 = Array[6]
+			end
+			if type(Array[7]) == "string" then
+				color = Array[7]
+			end
+		else
+			XM.Print("色点名:"..Array[1]..",请填写正确的结尾参数")
+			return false
+		end
+		x1,y1, x2,y2 = ColorChange(x1,y1, x2,y2)
+	end
     local x,y,value = -1,-1,-1
     if mode == 0 then
-        if id == 1 then
-            x, y, value = findmulticolor(x1,y1, x2,y2,color, OffsetPos,sim,0)
-            return x,y,value
-        elseif id == 2 then
-            x, y, value = findcolor(x1,y1, x2,y2,color,sim,0)
-            return x,y,value
-        end
+		if id == 1 then
+			x, y, value = findmulticolor(x1,y1, x2,y2,color, OffsetPos,sim,0)
+			return x,y,value
+		elseif id == 2 then
+			x, y, value = findcolor(x1,y1, x2,y2,color,sim,0)
+			return x,y,value
+		end
     elseif mode == 1 then
         value = findmulticolorex(x1, y1,x2, y2,color,OffsetPos,sim, 0)
         return value
-    elseif mode == 2 then
-        value = getcolornum(x1, y1,x2, y2,color,sim)
+	elseif mode == 2 then
+		value = getcolornum(x1, y1,x2, y2,color,sim)
         return value
     end
     return -1,-1,-1
@@ -1189,18 +1161,18 @@ function ColorChange(...)	--色点缩放
         end
         if #Arr == 1 then
             local str = ""
-            if Arr[1] ~= "" then
-                local list = XM.Split(Arr[1],",")
-                for i = 1,#list do
-                    if str ~= "" then
-                        str = str .. ","
-                    end
-                    local arr = XM.Split(list[i],"|")
-                    x = math.ceil(tonumber(arr[1]) * XM_resolPower)
-                    y = math.ceil(tonumber(arr[2]) * XM_resolPower)
-                    val = arr[3]
-                    str = str .. x .. "|" .. y .. "|" .. val 
-                end
+			if Arr[1] ~= "" then
+				local list = XM.Split(Arr[1],",")
+				for i = 1,#list do
+					if str ~= "" then
+						str = str .. ","
+					end
+					local arr = XM.Split(list[i],"|")
+					x = math.ceil(tonumber(arr[1]) * XM_resolPower)
+					y = math.ceil(tonumber(arr[2]) * XM_resolPower)
+					val = arr[3]
+					str = str .. x .. "|" .. y .. "|" .. val 
+				end
             end
             return str
         elseif #Arr == 4 then
@@ -1281,25 +1253,25 @@ XM_JsonGetUI = {}
 XM_JsonGetUIBool = false
 function XM.GetUI(id)	--获取UI
     if XM_JsonGetUIBool == true then
-        local value = RecursionJson(XM_JsonGetUI,id)
+		local value = RecursionJson(XM_JsonGetUI,id)
         if value == "true" then
-            value = true
+           value = true
         elseif value == "false" then
-            value = false
+			value = false
         end
         return value
     else
-        local path = getrcpath("rc:saveDataJson.txt")
-        local value =  XM.ReadFile(path,false)
-        XM_JsonGetUI = XM.JsonDecode(value)
+		local path = getrcpath("rc:saveDataJson.txt")
+		local value =  XM.ReadFile(path,false)
+		XM_JsonGetUI = XM.JsonDecode(value)
         if value ~= nil and value ~= "" then
             XM_JsonGetUIBool = true
         end
-        local value = RecursionJson(XM_JsonGetUI,id)
+		local value = RecursionJson(XM_JsonGetUI,id)
         if value == "true" then
-            value = true
+           value = true
         elseif value == "false" then
-            value = false
+			value = false
         end
         return value
     end

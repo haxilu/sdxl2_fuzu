@@ -1,19 +1,25 @@
-﻿--退出队伍
+﻿
+--任务表
+TaskTable={}
+--任务完成表
+TaskOverTable={}
+
+--退出队伍
 function ExitTeam()
     --关闭遮挡页面
     TapCloseButton()
     sleep(1000)    
-    Debug("正在 退出队伍..")
-    if XM.Find({"界面","背包"}) then
+    xGame.Show("正在 退出队伍..")
+    if xGame.Find({"界面","背包"}) then
         
         --点击队伍tab
-        XM.Find({"界面","队伍tab未选中状态"},true)
+        xGame.Find({"界面","队伍tab未选中状态"},true)
         
         sleep(1000)
         
-        if XM.Find({"界面","队伍tab选中状态"}) then
+        if xGame.Find({"界面","队伍tab选中状态"}) then
             
-            if  XM.Find({"界面","未在队伍状态"}) then
+            if  xGame.Find({"界面","未在队伍状态"}) then
                 return true
             else               
                 tap(1045,160) --点击自己
@@ -26,7 +32,7 @@ function ExitTeam()
             end            
         end           
     else
-        Debug("不在主页.无法进行队伍操作..")
+        xGame.Show("不在主页.无法进行队伍操作..")
         return false
     end 
 end
@@ -39,10 +45,10 @@ function ZBTimeOut(list)
     local timeOutState=false --超时状态
     --检查是否完成
     while true do
-        
-        Debug("提示:\n任务完成后,角色会停止移动(正常现象)\n然后脚本会进行任务判定..\n"..list.name.."进行中..")
-        sleep(2000)
-        zbColorNum_new = XM.FindNumRet({"界面","坐标色点"})        
+        sleep(1000)
+        xGame.Show("提示:\n任务完成后,角色会停止移动(正常现象)\n然后脚本会进行任务判定..\n"..list.name.."进行中..")
+        sleep(1000)
+        zbColorNum_new = xGame.FindNumRet({"界面","坐标色点"})        
         
         if 2 < zbColorNum_new and zbColorNum_new < 450 then                        
             
@@ -50,8 +56,8 @@ function ZBTimeOut(list)
             if zbColorNum_old==zbColorNum_new then   
                 
                 timeOut=timeOut+2
-                Debug(list.name.."任务完成判定倒计时(请勿移动角色):"..timeOut.."/20",true)
-                if timeOut>=30 then
+                xGame.Show(list.name.."任务完成判定倒计时(请勿移动角色):"..timeOut.."/20",true)
+                if timeOut>=20 then
                     --超时
                     timeOutState=true
                 end
@@ -64,15 +70,15 @@ function ZBTimeOut(list)
         
         --关掉对话
         if zbColorNum_new==0 then
-            if XM.Find({"界面","跳过对话"}) then                 
-                if XM.Timer(list.name.."跳过对话",4) then
+            if xGame.Find({"界面","跳过对话"}) then                 
+                if xGame.Timer(list.name.."跳过对话",4) then
                     跳过对话() 
                     TapCloseButton(false)                    
                 end
-                sleep(3000)
+                sleep(2000)
             end
         else
-            XM.TimerInit(list.name.."跳过对话")
+            xGame.TimerInit(list.name.."跳过对话")
         end        
         
         --超时
@@ -86,14 +92,14 @@ end
 function TaskEnter(list)
     while true do
         sleep(1000)
-        if XM.Find({"任务",list.name.."入口"},true) then           
+        if xGame.Find({"任务",list.name.."入口"},true) then           
             return true
         else
-            Debug("等待[ "..list.name.." ]入口..大概20秒..",true)
+            xGame.Show("等待[ "..list.name.." ]入口..大概20秒..",true)
             --20s后 超时
-            if XM.Timer(list.name.."入口",20) then
+            if xGame.Timer(list.name.."入口",20) then
                 
-                Debug("等待[ "..list.name.." ]入口 超时.重新领取任务..")
+                xGame.Show("等待[ "..list.name.." ]入口 超时.重新领取任务..")
                 
                 sleep(1000)
                 return false 
@@ -110,18 +116,18 @@ function WaitFuBenOver(list)
     if 进入活动_道具() then        
         sleep(1000)
         if OrganizeTeam(list) then
-            if XM.Switch("副本组队成功") then
+            if xGame.Switch("副本组队成功") then
                 --组队成功
                 return list.name
             else
-                Debug("已经组过队伍..开始副本.")
+                xGame.Show("已经组过队伍..开始副本.")
             end            
         else
             --任务已经完成 无需组队 
             return TaskOver(list.name)
         end
         
-        if XM.Find({"任务",list.name},true) then
+        if xGame.Find({"任务",list.name},true) then
             
             --走到副本入口
             if Tap_副本按钮() then
@@ -130,7 +136,7 @@ function WaitFuBenOver(list)
                 tap(1047,581) --进入副本
                 sleep(500)
                 
-                Wait(list,180) --等待180秒
+                xGame.Wait(list,180) --等待180秒
                 
                 local zbColorNum_old=0 --旧坐标色点数
                 local zbColorNum_new=0 --新坐标色点数
@@ -142,7 +148,7 @@ function WaitFuBenOver(list)
                     
                     if timeOutState==false then 
                         
-                        zbColorNum_new = XM.FindNumRet({"界面","坐标色点"})               
+                        zbColorNum_new = xGame.FindNumRet({"界面","坐标色点"})               
                         
                         if 2 < zbColorNum_new and zbColorNum_new < 450 then                        
                             
@@ -150,7 +156,7 @@ function WaitFuBenOver(list)
                             if zbColorNum_old==zbColorNum_new then   
                                 
                                 timeOut= timeOut + 3
-                                Debug("卡机判断:"..timeOut.."/30")
+                                xGame.Show("卡机判断:"..timeOut.."/30")
                                 if timeOut>=30 then
                                     --超时
                                     timeOutState=true
@@ -162,28 +168,28 @@ function WaitFuBenOver(list)
                             end
                         end                        
                     else                        
-                        Debug(list.name.." 卡机状态..  正在处理...",true)
+                        xGame.Show(list.name.." 卡机状态..  正在处理...",true)
                         --卡机
-                        if XM.Find({"任务","副本内队伍界面"},true) then
+                        if xGame.Find({"任务","副本内队伍界面"},true) then
                             sleep(2000)
-                            XM.RndTap(1119,193)                           
-                        elseif XM.Find({"任务","副本内任务界面"}) then
+                            xGame.RndTap(1119,193)                           
+                        elseif xGame.Find({"任务","副本内任务界面"}) then
                             sleep(2000)
-                            XM.RndTap(1119,193)                            
+                            xGame.RndTap(1119,193)                            
                         else
                             ErrorAction()
                             
-                            if XM.Timer(list.name.."副本卡机状态",20) then
+                            if xGame.Timer(list.name.."副本卡机状态",20) then
                                 
-                                if  XM.Find({"任务","退出副本按钮"},true) then
+                                if  xGame.Find({"任务","退出副本按钮"},true) then
                                     sleep(1000)
-                                    XM.RndTap(726,438) --点击确认
+                                    xGame.RndTap(726,438) --点击确认
                                     sleep(5000)
                                 else
                                     sleep(1000)
-                                    XM.RndTap(652,43) 
+                                    xGame.RndTap(652,43) 
                                     sleep(2000)
-                                    XM.RndTap(726,438)
+                                    xGame.RndTap(726,438)
                                     sleep(5000)
                                 end
                                 return list.name --退出任务
@@ -194,14 +200,14 @@ function WaitFuBenOver(list)
                         
                         timeOutState=false
                     end  
-                    if XM.Timer(list.name.."副本内关闭窗口",30) then
-                        Debug("正在关闭遮挡窗口..")
+                    if xGame.Timer(list.name.."副本内关闭窗口",30) then
+                        xGame.Show("正在关闭遮挡窗口..")
                         TapCloseButton()                    
                     end
                     
                     --寻找结束页面
-                    if XM.Find({"任务","副本结算页面"},true) then            
-                        Debug("["..list.name.."]副本结束...",true)                                               
+                    if xGame.Find({"任务","副本结算页面"},true) then            
+                        xGame.Show("["..list.name.."]副本结束...",true)                                               
                         
                         --点击 取消继续副本
                         sleep(2000)     
@@ -209,25 +215,25 @@ function WaitFuBenOver(list)
                         TapCloseButton()
                         return list.name
                     else
-                        if XM.TimerFirst(list.name.."进行中",12) then
+                        if xGame.TimerFirst(list.name.."进行中",12) then
                             Doing(list)                            
                         end
                     end
                     
                 end
                 
-                if WaitFuBenOver(list) then
-                    return list.name
-                end               
+                --                if WaitFuBenOver(list) then
+                --                    return list.name
+                --                end               
                 
             else
-                Msg("等待 "..list.name.."副本入口超时")
+                xGame.Msg("等待 "..list.name.."副本入口超时")
             end
         else
             return TaskOver(list.name)
         end   
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
@@ -235,35 +241,35 @@ end
 
 --组5人队伍
 function OrganizeTeam(list)    
-    if XM.Switch("副本组队") then
+    if xGame.Switch("副本组队") then
         
-        if XM.Find({"任务",list.name}) then                      
+        if xGame.Find({"任务",list.name}) then                      
             
             TapCloseButton()
-            Debug(list.name.."状态为 [可领取] ,开始组队..")
+            xGame.Show(list.name.."状态为 [可领取] ,开始组队..")
             sleep(1000)
-            if XM.Find({"界面","背包"}) then
+            if xGame.Find({"界面","背包"}) then
                 
                 --点击队伍tab
-                XM.Find({"界面","队伍tab未选中状态"},true)
+                xGame.Find({"界面","队伍tab未选中状态"},true)
                 
                 sleep(1000)
                 
-                if XM.Find({"界面","队伍tab选中状态"}) then
+                if xGame.Find({"界面","队伍tab选中状态"}) then
                     
-                    if  XM.Find({"界面","未在队伍状态"}) then
+                    if  xGame.Find({"界面","未在队伍状态"}) then
                         
                     else
-                        Debug("检查队伍人数...")
+                        xGame.Show("检查队伍人数...")
                         --点击5号位置
                         tap(1071,485)
                         sleep(1000)
                         --未找到5号位置,则退出现有队伍,重新匹配队友 
-                        if XM.Find({"界面","五号位置请离按钮"}) then
-                            Debug("队伍5人,完成组队....") 
+                        if xGame.Find({"界面","五号位置请离按钮"}) then
+                            xGame.Show("队伍5人,完成组队....") 
                             return true                            
                         else
-                            Debug("队伍不满5人,退出退伍.开始组队....")     
+                            xGame.Show("队伍不满5人,退出退伍.开始组队....")     
                             
                             tap(1045,160) --点击自己
                             sleep(500) 
@@ -273,25 +279,25 @@ function OrganizeTeam(list)
                             sleep(500)                              
                         end                           
                     end
-                    Debug("队伍不满5人,退出退伍.开始组队....")     
+                    xGame.Show("队伍不满5人,退出退伍.开始组队....")     
                     --组建队伍
                     BuildTeam()
                     
-                    Debug("正在组队中.....")   
+                    xGame.Show("正在组队中.....")   
                     
                     --确认组队是否完成
                     while true do        
                         sleep(3000)
-                        if  XM.Find({"界面","背包"})   then
+                        if  xGame.Find({"界面","背包"})   then
                             --找到背包证明没有匹配成功
-                            Debug("正在组队中.....")                            
+                            xGame.Show("正在组队中.....")                            
                         else            
-                            if  XM.Find({"界面","队伍满人按钮"},true) then
-                                Debug("组队成功!!!!")
+                            if  xGame.Find({"界面","队伍满人按钮"},true) then
+                                xGame.Show("组队成功!!!!")
                                 sleep(2000)
                                 return true
                             else
-                                Debug("正在组队中.....")
+                                xGame.Show("正在组队中.....")
                             end
                         end
                     end
@@ -300,11 +306,11 @@ function OrganizeTeam(list)
                     
                 end           
             else
-                Debug("不在主页,无法进行队伍操作..")
+                xGame.Show("不在主页,无法进行队伍操作..")
             end 
             
         else            
-            Debug("任务已经完成 无需组队--")
+            xGame.Show("任务已经完成 无需组队--")
             return false --任务已完成
         end        
     else
@@ -329,12 +335,12 @@ end
 function TimeOut(list,taskTypeName)    
     taskTypeName = taskTypeName or ""
     list.taskOutTime = list.taskOutTime or 20
-    if XM.Timer(list.name..taskTypeName,list.taskOutTime) then
-        Debug("["..list.name..taskTypeName .."]超时...重新开始任务..",true)
+    if xGame.Timer(list.name..taskTypeName,list.taskOutTime) then
+        xGame.Show("["..list.name..taskTypeName .."]超时...重新开始任务..",true)
         sleep(2000)
         return true                    
     else
-        Debug("开始判断["..list.name..taskTypeName.."]超时, 大约"..list.taskOutTime.."秒")
+        xGame.Show("开始判断["..list.name..taskTypeName.."]超时, 大约"..list.taskOutTime.."秒")
         
     end
     
@@ -346,25 +352,25 @@ function ErrorAction()
     
     --关闭按钮
     TapCloseButton()    
-    Debug("可能发生了卡机,调整位置中..",true)
-    XM.Swipe(651,364,487,357,5,2000)
-    XM.Swipe(651,364,551,234,5,2000)
-    XM.Swipe(651,364,751,217,5,2000)
-    XM.Swipe(651,364,812,391,5,2000)
-    XM.Swipe(651,364,619,463,5,2000)
-    XM.Swipe(651,364,751,487,5,2000)        
+    xGame.Show("可能发生了卡机,调整位置中..",true)
+    xGame.Swipe(651,364,487,357,5,2000)
+    xGame.Swipe(651,364,551,234,5,2000)
+    xGame.Swipe(651,364,751,217,5,2000)
+    xGame.Swipe(651,364,812,391,5,2000)
+    xGame.Swipe(651,364,619,463,5,2000)
+    xGame.Swipe(651,364,751,487,5,2000)        
     
 end
 --领取任务提示
 function GetTaskingMsg(list)
-    Debug("正在领取["..list.name.."]任务...")
+    xGame.Show("正在领取["..list.name.."]任务...")
 end
 
 --显示任务信息
 function ShowTaskMsg()    
     local taskMsg=""
     if #TaskTable==0 then
-        taskMsg=taskMsg.."⭐⭐⭐⭐⭐⭐⭐⭐任务已经全部完成⭐⭐⭐⭐⭐⭐⭐⭐\n"  
+        taskMsg=taskMsg.."⭐⭐⭐任务已经全部完成\n"  
         taskMsg=taskMsg.."--------------------------------\n"
     end
     
@@ -380,17 +386,17 @@ function ShowTaskMsg()
     
     if #TaskTable>0 then
         taskMsg=taskMsg.."--------------------------------\n"
-        taskMsg=taskMsg.."\n⭐⭐⭐⭐⭐⭐⭐⭐任务添加成功..4秒后 开始执行..."   
+        taskMsg=taskMsg.."\n⭐⭐⭐任务添加成功..4秒后 开始执行..."   
     end  
     
-    XM.Msg(taskMsg,344,68)  
+    xGame.Msg(taskMsg,344,68)  
     sleep(1000)
 end
 function 跳过对话()
     
     while true do
         
-        if XM.Find({"界面","跳过对话"},true) then
+        if xGame.Find({"界面","跳过对话"},true) then
             
         else
             sleep(1000)
@@ -404,13 +410,13 @@ end
 
 --是否是战斗界面
 function IsCombatFace()
-    return XM.Find({"界面","战斗界面"})
+    return xGame.Find({"界面","战斗界面"})
 end
 
 --移除 x个队友
 function RemoveTeammate(num)
-    Debug("移除"..num.."名队友..")
-    XM.Find({"界面","队伍tab未选中状态"},true) 
+    xGame.Show("移除"..num.."名队友..")
+    xGame.Find({"界面","队伍tab未选中状态"},true) 
     sleep(500)
     --移除x个一条队友
     for i=1,num,1 do
@@ -427,7 +433,7 @@ end
 
 --正在进行的任务
 function Doing(list)
-    Debug("***["..list.name.."]进行中-->>>>>>")   
+    xGame.Show("***["..list.name.."]进行中-->>>>>>")   
 end
 
 --关闭使用物品界面
@@ -435,7 +441,7 @@ function TapCloseGoods()
     sleep(500)
     while true do
         
-        if XM.Find({"界面","关闭使用物品界面"},true) then            
+        if xGame.Find({"界面","关闭使用物品界面"},true) then            
             
         else           
             return true             
@@ -447,28 +453,27 @@ end
 
 
 --任务结束
-function TaskOver(str)    
-    Debug("["..str.."]已完成...")
-    TapCloseButton() 
+function TaskOver(str)  
+    
+    TapCloseButton()
     if #TaskTable >0 then
         table.remove(TaskTable,1)        
         table.insert(TaskOverTable,(#TaskOverTable+1),str.." -----------✔已完成")        
     end    
     
     if #TaskTable > 0 then --防止无任务后 报错
-        Debug("["..str.."]已完成...进行下一个任务 --->>>> "..TaskTable[1],true)
-    end 
-    
-    sleep(2000)
-    
+        xGame.Show("["..str.."]已完成...进行下一个任务 --->>>> "..TaskTable[1],true)
+    end    
+    sleep(2000)    
     return "TheLegendOfCondorHero"
 end
 
 --点击关闭按钮
+--	isCloseGoods: 传入false 则  不关闭物品  (默认: 同时关闭物品)
 function TapCloseButton(isCloseGoods)
     
     sleep(500)    
-    XM.Find({"界面","关闭"},true) 
+    xGame.Find({"界面","关闭"},true) 
     
     if isCloseGoods==nil then
         isCloseGoods= true   
@@ -480,41 +485,7 @@ function TapCloseButton(isCloseGoods)
     end
     
     sleep(500)
-    XM.Find({"界面","关闭"},true) 
-end
-
---检查屏幕信息
-function CheckRun()
-    
-    setfloatwindowlocation(5,718)    
-    Debug("调整悬浮窗位置到左下角")
-    
-    local msg=""
-    local list = XM.GetScreenSimulator() --当前分辨率    
-    
-    msg=msg.."推荐分辨率: 720 * 1280  DPI: 320 \n当前分辨率: "..list[1].." * "..list[2].."  DPI: "..list[3]
-    
-    msg=msg.."\n---------------------------------------------"
-    msg=msg.."\n【飞天助手】海量免费辅助搭配【红手指】\n免充电、免Root、免流量、24小时离线挂机!"
-    msg=msg.."\n---------------------------------------------"
-    msg=msg.."\n任务日志 在设备的 【根目录 / 神雕2脚本日志】 文件夹中  \n文件名格式: 年 - 月 - 日.txt  \n(可以查看此文件查看历史任务情况)\n\n脚本出现异常可以将此日志发给作者.."
-    msg=msg.."\n---------------------------------------------"    
-    msg=msg.."\n请确保\n1.已经进入游戏\n2.所有窗口已关闭\n3.画质为 [省电]\n4.打开[匹配机器人]"
-    msg=msg.."\n---------------------------------------------"  
-    if list[1]==720 and list[2]==1280 and list[3]==320 then
-        
-    else 
-        msg=msg.."\n分辨率不匹配.脚本运行过程可能不稳定."        
-    end     
-    
-    msg=msg.."\n智能检测运行环境,正在启动【新版防封框架】..."  
-    
-    msg=msg.."\n---------------------------------------------"  
-    for i=5,0,-1 do
-        sleep(1000)
-        CenterMsg(msg.."\n"..i.."秒后开始运行脚本....")        
-    end    
-    
+    xGame.Find({"界面","关闭"},true) 
 end
 
 --获取页面选择的任务
@@ -525,7 +496,7 @@ function GetSelectTask()
     
     --遍历多选框结果.
     for i=#CheckboxTable,0,-1 do        
-        if XM.GetUI(CheckboxTable[i]) then           
+        if xGame.GetUI(CheckboxTable[i]) then           
             --加入任务表
             table.insert(TaskTable,1,CheckboxTable[i])                       
         end   
@@ -536,7 +507,7 @@ end
 
 --创建队伍
 function  BuildTeam()
-    Debug("创建队伍,开始匹配....")
+    xGame.Show("创建队伍,开始匹配....")
     --进入队伍页面
     tap(1181,120)
     sleep(1000)    
@@ -547,7 +518,7 @@ function  BuildTeam()
     tap(869,142) --点击目标
     
     sleep(1500)
-    XM.Swipe(329,235,327,414) --划动列表
+    xGame.Swipe(329,235,327,414) --划动列表
     
     sleep(1500)            
     tap(303,171)--点击日常活动
@@ -572,18 +543,15 @@ function  BuildTeam()
     
     TapCloseButton()
 end
---屏幕中间显示提示
-function CenterMsg(msg)
-    XM.Msg(msg,442,24)    
-end
+
 
 --点击副本按钮
 function Tap_副本按钮()
     for i=20,0,-2 do                  
-        if XM.Find({"任务","副本入口按钮"},true) then            
+        if xGame.Find({"任务","副本入口按钮"},true) then            
             return true
         else
-            Debug("没有到达副本门口..倒计时:"..i)
+            xGame.Show("没有到达副本门口..倒计时:"..i)
         end
         sleep(2000)                   
     end  
@@ -595,7 +563,7 @@ function 进入活动_经验()
     if GoActivity_All() then
         
         sleep(2000)
-        if XM.Find({"界面","活动界面"}) then 
+        if xGame.Find({"界面","活动界面"}) then 
             
             Tap_经验页面()
             
@@ -618,7 +586,7 @@ function 进入活动_休闲()
     if GoActivity_All() then
         
         sleep(2000)
-        if XM.Find({"界面","活动界面"}) then 
+        if xGame.Find({"界面","活动界面"}) then 
             
             Tap_休闲界面()
             
@@ -638,7 +606,7 @@ function 进入活动_道具()
     --进入活动页面
     if GoActivity_All() then        
         sleep(1000)
-        if XM.Find({"界面","活动界面"}) then             
+        if xGame.Find({"界面","活动界面"}) then             
             Tap_道具界面()            
             sleep(1000)            
             return true            
@@ -654,10 +622,10 @@ end
 function GoActivity_All()
     --是否是战斗界面    
     if IsCombatFace()  then
-        Debug("战斗界面...")  
+        xGame.Show("战斗界面...")  
         return false
     else        
-        return XM.Find({"界面","活动按钮"},true)         
+        return xGame.Find({"界面","活动按钮"},true)         
     end    
     
 end
@@ -679,8 +647,8 @@ end
 --重置任务卡 位置
 function ResetTaskCard()
     sleep(500)
-    XM.RndTap(212,281)
+    xGame.RndTap(212,281)
     sleep(500)
-    XM.RndTap(202,200)
+    xGame.RndTap(202,200)
     sleep(500)
 end

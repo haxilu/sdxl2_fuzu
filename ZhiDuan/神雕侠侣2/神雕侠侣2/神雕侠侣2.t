@@ -1,31 +1,36 @@
 ﻿--
---神雕侠侣
+--神雕侠侣2
 --
+-----------Init---START----------------------
+xRobot.Run("TheLegendOfCondorHero")
 
-Unit.State.Name="TheLegendOfCondorHero"
-Settings.Process.IsLoop=true
-Settings.Process.SleepTime=1000
-Settings.Process.IsXMLog=true
-
---------------↑-----↑-------↑---↑----设置↑--------↑---↑------
-
---任务表
-TaskTable={}
---任务完成表
-TaskOverTable={}
+xRobot.Set_Robot_Options("sleep_time",100)
+xRobot.Set_Robot_Options("loop_sw",true)
+xRobot.Set_Robot_Options("xmlog_sw",true)
+xRobot.Set_Robot_Options("applog_sw",false)
+xRobot.Set_Robot_Options("ide_print_sw",true)
 
 
---调度器
-Unit.Param.TheLegendOfCondorHero={name="TheLegendOfCondorHero"}
-function Unit.State.TheLegendOfCondorHero(list)
+xRobot.Set_Script_Options("scale_xy",{ 720, 1280 })
+xRobot.Set_Script_Options("msgbox_position_xy",{ 233, 1215 })
+xRobot.Set_Script_Options("center_msgbox_position_xy",{ 442,24 })
+xRobot.Set_Script_Options("homekey_position","右")
+xRobot.Set_Script_Options("logfolder_name","神雕2_代码侠日志")
+xRobot.Set_Script_Options("zd_floatwindow_location_xy",{ 5, 718 })
+
+-----------Init---END----------------------
+
+
+xRobot.Task("TheLegendOfCondorHero",
+function (list)
     
-    if XM.Switch("初始化") then
+    if xGame.Switch("初始化") then
         
         --指端广告入口
-        showscriptad()     
+        showscriptad()
         
         --检查环境信息
-        CheckRun()
+        xGame.CheckRun(3)
         
         --获取界面选择的任务
         GetSelectTask()       
@@ -34,9 +39,9 @@ function Unit.State.TheLegendOfCondorHero(list)
     TapCloseButton()
     if #TaskTable >0 then
         
-        Debug("执行任务>>>>"..TaskTable[1],true)
+        xGame.Show("执行任务>>>>"..TaskTable[1],true)
         return TaskTable[1]
-    else        
+    else
         
         ShowTaskMsg()         
         sleep(990000)
@@ -44,15 +49,16 @@ function Unit.State.TheLegendOfCondorHero(list)
     
     return list.name
 end
+)
 
 
-Unit.Param.翰林求学={name="翰林求学"}
-function Unit.State.翰林求学(list) --✔
+xRobot.Task("翰林求学",
+function (list)  
     
     GetTaskingMsg(list)
     if 进入活动_休闲() then
         
-        if XM.Find({"任务","翰林求学"},true) then
+        if xGame.Find({"任务","翰林求学"},true) then
             
             --答案坐标ABCD
             Answer={
@@ -74,25 +80,25 @@ function Unit.State.翰林求学(list) --✔
             sleep(2000)
             tap(1138,76) 
             sleep(2000)            
-            XM.Find({"任务","翰林求学未领取奖励确定领取按钮"},true)                        
+            xGame.Find({"任务","翰林求学未领取奖励确定领取按钮"},true)                        
         else        
             return TaskOver(list.name) 
         end       
         
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
-
-
-Unit.Param.恩仇录={name="恩仇录"}
-function Unit.State.恩仇录(list)--✔
+)
+xRobot.Task("恩仇录",
+function (list)  
+    
     GetTaskingMsg(list)
     if 进入活动_道具() then
         
-        if XM.Find({"任务","恩仇录"},true) then        
+        if xGame.Find({"任务","恩仇录"},true) then        
             
             while true do
                 sleep(1000)
@@ -106,7 +112,7 @@ function Unit.State.恩仇录(list)--✔
                     
                     while true do                    
                         
-                        if XM.Find({"界面","背包"}) then
+                        if xGame.Find({"界面","背包"}) then
                             sleep(2000)
                             tap(1212,275)
                             return TaskOver(list.name)
@@ -126,33 +132,34 @@ function Unit.State.恩仇录(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
-
-Unit.Param.踏雪无痕={name="踏雪无痕"}
-function Unit.State.踏雪无痕(list)--✔
+xRobot.Task("踏雪无痕",
+function (list)  
+    
     GetTaskingMsg(list)
     if 进入活动_休闲() then       
         
-        if XM.Find({"任务","踏雪无痕"},true) then        
+        if xGame.Find({"任务","踏雪无痕"},true) then        
             
             while true do                
                 
                 if TaskEnter(list) then                
                     sleep(2000)
-                    if XM.Find({"任务","踏雪无痕次数上限"},true) then                    
+                    if xGame.Find({"任务","踏雪无痕次数上限"},true) then                    
                         return TaskOver(list.name)
                     end            
                     --等待25秒
-                    Wait(list,25)
+                    xGame.Wait(list,25)
                     while true do
                         Doing(list)
                         
-                        if XM.Find({"任务","踏雪无痕胜利"}) then
+                        if xGame.Find({"任务","踏雪无痕胜利"}) then
                             sleep(1000)
                             tap(285,578)    
                             return TaskOver(list.name)
@@ -176,26 +183,27 @@ function Unit.State.踏雪无痕(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
-
-Unit.Param.烽火令={name="烽火令"}
-function Unit.State.烽火令(list)--✔
+xRobot.Task("烽火令",
+function (list)  
+    
     GetTaskingMsg(list)
     
     if 进入活动_经验() then
         
-        if XM.Find({"任务","烽火令"},true) then              
+        if xGame.Find({"任务","烽火令"},true) then              
             
             sleep(3000)
-            if XM.Find({"任务","烽火令领取"},true) then                
-                Debug("领取成功...")            
+            if xGame.Find({"任务","烽火令领取"},true) then                
+                xGame.Show("领取成功...")            
             else
-                Debug("玩家没有勾选 [ 自动 烽火令 ].3秒后跳过烽火令任务..") 
+                xGame.Show("玩家没有勾选 [ 自动 烽火令 ].3秒后跳过烽火令任务..") 
                 sleep(3000)
             end
             
@@ -206,21 +214,21 @@ function Unit.State.烽火令(list)--✔
             return TaskOver(list.name)
         end   
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
-    return list.name    
+    return list.name  
 end
+)
 
-
-Unit.Param.丝绸之路={name="丝绸之路"}
-function Unit.State.丝绸之路(list)--✔ 
+xRobot.Task("丝绸之路",
+function (list)  
     
     GetTaskingMsg(list)
     
     if 进入活动_道具() then
         
-        if XM.Find({"任务","丝绸之路"},true) then  
+        if xGame.Find({"任务","丝绸之路"},true) then  
             
             while true do
                 
@@ -228,12 +236,12 @@ function Unit.State.丝绸之路(list)--✔
                 
                 TapCloseGoods()
                 sleep(500)
-                if XM.Find({"任务","丝绸之路装备提交"}) then
+                if xGame.Find({"任务","丝绸之路装备提交"}) then
                     tap(1089,495)  
                 end            
                 
                 sleep(500)
-                if XM.Find({"任务","丝绸之路结束"}) then
+                if xGame.Find({"任务","丝绸之路结束"}) then
                     
                     sleep(1000)
                     --领取奖励
@@ -252,20 +260,21 @@ function Unit.State.丝绸之路(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
-
-Unit.Param.名人轶事={name="名人轶事"}
-function Unit.State.名人轶事(list)--✔    
+xRobot.Task("名人轶事",
+function (list)  
+    
     GetTaskingMsg(list)
     
     if   进入活动_休闲() then
         
-        if XM.Find({"任务","名人轶事"},true) then  
+        if xGame.Find({"任务","名人轶事"},true) then  
             
             while true do
                 sleep(1000)
@@ -284,19 +293,21 @@ function Unit.State.名人轶事(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
 
-Unit.Param.师门任务={name="师门任务"}
-function Unit.State.师门任务(list)--✔
+xRobot.Task("师门任务",
+function (list)  
+    
     GetTaskingMsg(list)    
     if 进入活动_经验()  then
         
-        if XM.Find({"任务","师门任务"},true) then 
+        if xGame.Find({"任务","师门任务"},true) then 
             
             local zbColorNum_old=0 --旧坐标色点数
             local zbColorNum_new=0 --新坐标色点数
@@ -306,7 +317,7 @@ function Unit.State.师门任务(list)--✔
             while true do
                 sleep(3000)
                 
-                zbColorNum_new = XM.FindNumRet({"界面","坐标色点"})               
+                zbColorNum_new = xGame.FindNumRet({"界面","坐标色点"})               
                 
                 if 2 < zbColorNum_new and zbColorNum_new < 450 then                        
                     
@@ -314,7 +325,7 @@ function Unit.State.师门任务(list)--✔
                     if zbColorNum_old==zbColorNum_new then   
                         
                         timeOut=timeOut+3
-                        Debug("卡机判断:"..timeOut.."/30")
+                        xGame.Show("卡机判断:"..timeOut.."/30")
                         if timeOut>=30 then
                             --超时
                             timeOutState=true
@@ -323,7 +334,7 @@ function Unit.State.师门任务(list)--✔
                         --左边变动,重置超时时间
                         zbColorNum_old=zbColorNum_new
                         timeOut=0
-                        Wait(list,15)
+                        xGame.Wait(list,15)
                     end
                 end
                 
@@ -334,7 +345,7 @@ function Unit.State.师门任务(list)--✔
                 
                 
                 --师门结束判断
-                if XM.Find({"任务","师门任务结束"}) then                
+                if xGame.Find({"任务","师门任务结束"}) then                
                     sleep(1000)
                     tap(647,351)
                     sleep(4000)
@@ -342,7 +353,7 @@ function Unit.State.师门任务(list)--✔
                     sleep(2000)
                     return TaskOver(list.name)
                 else
-                    if XM.TimerFirst("师门结束判定",7) then
+                    if xGame.TimerFirst("师门结束判定",7) then
                         Doing(list)                        
                     end
                 end
@@ -353,20 +364,22 @@ function Unit.State.师门任务(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
 
-Unit.Param.帮派任务={name = "帮派任务",sw = true}
-function Unit.State.帮派任务(list) --✔
+xRobot.Task("帮派任务",{ sw = true},
+function (list)  
+    
     GetTaskingMsg(list) 
     sleep(1000)
     if 进入活动_经验() then
         
-        if XM.Find({"任务","帮派任务"},true) then
+        if xGame.Find({"任务","帮派任务"},true) then
             TapCloseGoods()
             Doing(list)
             sleep(1000)             
@@ -380,7 +393,7 @@ function Unit.State.帮派任务(list) --✔
                     
                     --正常进入则等待240秒
                     if TaskEnter(list) then
-                        Wait(list,240)                
+                        xGame.Wait(list,240)                
                     end
                     
                     list.sw=false
@@ -397,19 +410,21 @@ function Unit.State.帮派任务(list) --✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
 
-Unit.Param.天下奇闻={name="天下奇闻",sw=true}
-function Unit.State.天下奇闻(list)--✔
+xRobot.Task("天下奇闻",{ sw = true},
+function (list)  
+    
     GetTaskingMsg(list) 
     if 进入活动_经验() then
         
-        if XM.Find({"任务","天下奇闻"},true) then  
+        if xGame.Find({"任务","天下奇闻"},true) then  
             
             while true do
                 Doing(list)
@@ -426,14 +441,18 @@ function Unit.State.天下奇闻(list)--✔
                         Doing(list)
                         
                         --休息230秒
-                        Wait(list,240)
+                        xGame.Wait(list,240)
                     end    
                     list.sw=false                    
                 else  
                     
                     ZBTimeOut(list)
                     
-                    return list.name
+                    if xGame.Find({"任务","天下奇闻任务栏位置"},true) then
+                        --继续任务
+                    else
+                        return list.name
+                    end  
                 end
                 
             end    
@@ -442,19 +461,21 @@ function Unit.State.天下奇闻(list)--✔
         end
         
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
 
-Unit.Param.竞技场={name="竞技场",maxValue=getselectscheckitemindex("竞技场次数")+1}
-function Unit.State.竞技场(list)--✔
+xRobot.Task("竞技场",{ maxValue = getselectscheckitemindex("竞技场次数")+1},
+function (list)  
+    
     GetTaskingMsg(list) 
     if 进入活动_道具() then
         
-        if XM.Find({"任务","竞技场"},true) then
+        if xGame.Find({"任务","竞技场"},true) then
             sleep(1000)
             local nowValue = 0
             
@@ -464,7 +485,7 @@ function Unit.State.竞技场(list)--✔
                 sleep(2000)
                 tap(844,295)    --进入战斗            
                 nowValue=nowValue+1                    
-                Debug(nowValue.."竞技场进行中,剩余"..(list.maxValue-nowValue).."次..")
+                xGame.Show(nowValue.."竞技场进行中,剩余"..(list.maxValue-nowValue).."次..")
                 while true do
                     
                     --跳出 结算页面
@@ -473,7 +494,7 @@ function Unit.State.竞技场(list)--✔
                     sleep(1000)
                     tap(680,592)                    
                     
-                    if XM.Find({"界面","竞技场界面"}) then
+                    if xGame.Find({"界面","竞技场界面"}) then
                         sleep(3000)
                         --满足次数则退出
                         if nowValue>=list.maxValue then
@@ -488,7 +509,7 @@ function Unit.State.竞技场(list)--✔
                         tap(844,295)  --进入战斗,次数加1
                         nowValue=nowValue+1
                     else
-                        Debug(nowValue.."竞技场进行中,剩余"..(list.maxValue-nowValue).."次..")
+                        xGame.Show(nowValue.."竞技场进行中,剩余"..(list.maxValue-nowValue).."次..")
                     end
                 end         
             else
@@ -500,39 +521,44 @@ function Unit.State.竞技场(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return list.name
 end
+)
 
-Unit.Param.夜袭敌营={name="夜袭敌营"}
-function Unit.State.夜袭敌营(list)--✔
+xRobot.Task("夜袭敌营",
+function (list)  
     
     return WaitFuBenOver(list)
 end
+)
 
-Unit.Param.五绝令={name="五绝令"}
-function Unit.State.五绝令(list)--✔
+xRobot.Task("五绝令",
+function (list)  
     
     return WaitFuBenOver(list)
 end
+)
 
-Unit.Param.勇闯绝情谷={name="勇闯绝情谷"}
-function Unit.State.勇闯绝情谷(list)--✔
+xRobot.Task("勇闯绝情谷",
+function (list)  
     
     return WaitFuBenOver(list)
 end
+)
 
-Unit.Param.江湖同游={name="江湖同游"}
-function Unit.State.江湖同游(list)--✔
+xRobot.Task("江湖同游",
+function (list)  
+    
     GetTaskingMsg(list) 
     sleep(1000)
     
     if 进入活动_休闲() then
         
-        if XM.Switch(list.name.."组队") then   
-            XM.OpenSwitch("副本组队")
+        if xGame.Switch(list.name.."组队") then   
+            xGame.OpenSwitch("副本组队")
             --组队
             if OrganizeTeam(list) then                
                 --移除3个队友
@@ -544,14 +570,14 @@ function Unit.State.江湖同游(list)--✔
             end            
         end
         
-        if XM.Find({"任务","江湖同游"},true) then         
+        if xGame.Find({"任务","江湖同游"},true) then         
             
             --江湖同游入口
             if TaskEnter(list) then
                 
                 Doing(list)                
                 
-                Wait(list,100)
+                xGame.Wait(list,100)
                 
                 --等待结束
                 ZBTimeOut(list)
@@ -569,15 +595,16 @@ function Unit.State.江湖同游(list)--✔
             return TaskOver(list.name)
         end
     else
-        Debug("进入[活动]页面失败...进行异常处理...")
+        xGame.Show("进入[活动]页面失败...进行异常处理...")
         ErrorAction()
     end
     return list.name
 end
+)
 
-
-Unit.Param.领取每日活动奖励={name="领取每日活动奖励"}
-function Unit.State.领取每日活动奖励(list)--✔
+xRobot.Task("领取每日活动奖励",
+function (list)  
+    
     Doing(list)  
     TapCloseButton()
     sleep(2000)
@@ -595,13 +622,13 @@ function Unit.State.领取每日活动奖励(list)--✔
         }       
         
         for i=1,#xyReward,1 do    
-            Debug("领取第"..i.."个奖励..")
+            xGame.Show("领取第"..i.."个奖励..")
             GetEverydayActivityReward(xyReward[i][1],xyReward[i][2]) --1 
         end   
     else
-        Debug("进入[活动]页面失败...")
+        xGame.Show("进入[活动]页面失败...")
         ErrorAction()
     end
     return TaskOver(list.name)
-    
 end
+)
