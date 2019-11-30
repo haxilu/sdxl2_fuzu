@@ -17,3 +17,9 @@
 
 请看 各个文件夹 中 说明.txt
 
+
+
+## XGAME框架开源仓库
+
+[点击查看仓库](https://github.com/xxxxue/XGAME)
+
