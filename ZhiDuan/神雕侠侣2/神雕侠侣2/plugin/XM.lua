@@ -271,6 +271,8 @@ function XM.FindNumRet(Str) 	--返回区域数量
 			XM.Print("XM.FindNumRet:色点名\""..colorList[1][1].."\"此函数不支持二维数组传参")
 		else
 			local value  = CurrencyFindColor(colorList,2)
+             XM.Print("XM.FindNumRet:色点名\""..colorList[1].."\"数量: "..value)
+            
 			return value
 		end
 	else

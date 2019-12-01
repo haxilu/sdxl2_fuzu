@@ -22,7 +22,7 @@ xRobot.Set_Script_Options("zd_floatwindow_location_xy",{ 5, 718 })
 
 
 xRobot.Task("TheLegendOfCondorHero",
-function (list)
+function (list)    
     
     if xGame.Switch("初始化") then
         

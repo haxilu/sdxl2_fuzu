@@ -353,12 +353,12 @@ function ErrorAction()
     --关闭按钮
     TapCloseButton()    
     xGame.Show("可能发生了卡机,调整位置中..",true)
-    xGame.Swipe(651,364,487,357,5,2000)
-    xGame.Swipe(651,364,551,234,5,2000)
-    xGame.Swipe(651,364,751,217,5,2000)
-    xGame.Swipe(651,364,812,391,5,2000)
-    xGame.Swipe(651,364,619,463,5,2000)
-    xGame.Swipe(651,364,751,487,5,2000)        
+    xGame.Swipe(651,364,487,357,98,2000)
+    xGame.Swipe(651,364,551,234,98,2000)
+    xGame.Swipe(651,364,751,217,98,2000)
+    xGame.Swipe(651,364,812,391,98,2000)
+    xGame.Swipe(651,364,619,463,98,2000)
+    xGame.Swipe(651,364,751,487,98,2000)        
     
 end
 --领取任务提示
